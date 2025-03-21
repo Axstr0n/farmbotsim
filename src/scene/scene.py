@@ -12,7 +12,7 @@ from path_planning.navmesh import NavMesh
 from utilities.states import AgentState, CropState, CropRowState
 from utilities.configuration import CROP_SCAN_TIME, CROP_PROCESS_TIME, FONT_PATH, CHARGING_STATION_WAITING_OFFSET
 
-from rendering.render import render_coordinate_system,render_navmesh,render_crop_field,render_obstacles,render_charging_stations,render_spawning_area,render_draggable_points,render_mouse_scene_pos
+from rendering.render import render_coordinate_system,render_navmesh,render_graph,render_crop_field,render_obstacles,render_charging_stations,render_spawning_area,render_draggable_points,render_mouse_scene_pos
 
 class Crop:
     def __init__(self, id:str, position:Vec2f, required_scan_time:int, required_process_time:int, row_id:str, state:CropState=CropState.UNPROCESSED):
@@ -105,6 +105,18 @@ class CropField:
             pos1 = pos1.get_offset_position(row_spacing, angle)
         padding = 0.05
         self.padded_obstacles = [padd_obstacle(obs,padding) for obs in self.obstacles]
+
+        # Extra surrond points for better navmesh
+        offset = 0.5
+        ltp = left_top_pos.get_offset_position(-offset, angle)
+        ltp = ltp.get_offset_position(-offset, angle+90)
+        mtp = ltp.get_offset_position(field_length/2 + offset, angle)
+        rtp = ltp.get_offset_position(field_length + 2*offset, angle)
+        lbp = ltp.get_offset_position(row_length+2*offset, angle+90)
+        mbp = lbp.get_offset_position(field_length/2 + offset, angle)
+        rbp = rtp.get_offset_position(row_length+2*offset, angle+90)
+        self.surround_extra_points = [ltp,rtp,lbp,rbp]
+        self.surround_extra_points = [tuple(p) for p in self.surround_extra_points]
 
         # For editor
         draggable_objects = {}
@@ -284,8 +296,9 @@ class Scene:
         obstacles = []
         for obs in self.crop_field.padded_obstacles:
             obstacles.append([(p.x,p.y) for p in obs])
-        #obstacles = [(p.x, p.y) for obs in self.crop_field.obstacles for p in obs]
-        self.navmesh = NavMesh([(0,0),(9,0),(9,7),(0,7)], obstacles)
+        #obstacles = [(p.x, p.y) for obs in self.crop_field.obstacles for p in obs
+        extra_points = self.crop_field.surround_extra_points
+        self.navmesh = NavMesh([(0,0),(9,0),(9,7),(0,7)], points=extra_points, obstacles=obstacles)
         self.draggable_objects = {key: value for key, value in self.draggable_objects.items() if "field" not in key}
         self.draggable_objects.update(self.crop_field.reset(self.config["field"]))
 
@@ -328,10 +341,11 @@ class Scene:
         self.draggable_objects["sa_height"] = bot_left
         self.draggable_objects["sa_angle"] = bot_right
 
-    def render_static(self, static_surface:pygame.Surface, camera:Camera, draw_navmesh:bool=False):
+    def render_static(self, static_surface:pygame.Surface, camera:Camera, draw_navmesh:bool=False, draw_graph=False):
         font = pygame.font.Font(FONT_PATH, 10)
 
         if draw_navmesh: render_navmesh(static_surface, camera, self.navmesh)
+        if draw_graph: render_graph(static_surface, camera, self.navmesh)
 
         render_coordinate_system(static_surface, camera, font)
 

@@ -4,7 +4,7 @@ import math
 from rendering.camera import Camera
 
 from utilities.states import AgentState, CropState, CropRowState
-from utilities.utils import Vec2f
+from utilities.utils import Vec2f, generate_colors
 from utilities.configuration import AGENT_RADIUS, CROP_RADIUS, CHARGING_STATION_WIDTH, CHARGING_STATION_HEIGHT
 
 color_default = (255,255,255)
@@ -19,6 +19,7 @@ COLORS = {
     "path": color_negative,
 
     "navmesh": color_negative,
+    "graph": color_default,
 
     "coordinate_system": color_default,
 
@@ -67,7 +68,7 @@ def render_agents(screen:pygame.surface, camera:Camera, agents):
         
         # Path
         if len(agent.path) > 0:
-            line_width = 1
+            line_width = 2
             path = [agent.position] + agent.path
             for i in range(len(path)-1):
                 c = camera.scene_to_screen_pos(path[i])
@@ -75,11 +76,23 @@ def render_agents(screen:pygame.surface, camera:Camera, agents):
                 pygame.draw.line(screen, COLORS["path"], c, n, line_width)
 
 def render_navmesh(screen:pygame.surface, camera:Camera, navmesh):
-    line_width = 1 
-    for tri in navmesh.triangles:
-        pts = [navmesh.vertices[i] for i in tri]
-        pts = [camera.scene_to_screen_pos(p) for p in pts]
+    line_width = 1
+    colors = generate_colors(len(navmesh.polygons))
+    for i, poly in enumerate(navmesh.polygons):
+        pts = [camera.scene_to_screen_pos((p.x,p.y)) for p in poly.points]
         pygame.draw.polygon(screen, COLORS["navmesh"], pts, line_width)
+
+def render_graph(screen:pygame.surface, camera:Camera, navmesh):
+    line_width = 1
+    for edge in navmesh.graph.edges(data=True):
+        p1 = navmesh.polygons[edge[0]].center
+        p2 = navmesh.polygons[edge[1]].center
+        pygame.draw.line(screen, COLORS["graph"], camera.scene_to_screen_pos((p1.x,p1.y)), camera.scene_to_screen_pos((p2.x,p2.y)), line_width)
+    node_radius = 3
+    for node in navmesh.graph.nodes():
+        p = navmesh.polygons[node].center
+        pygame.draw.circle(screen, COLORS["graph"], camera.scene_to_screen_pos((p.x,p.y)), node_radius)
+
 
 def render_coordinate_system(screen:pygame.surface, camera:Camera, font:pygame.font):
     def draw_arrow(screen, start, end, color, width=2, arrow_size=10):
