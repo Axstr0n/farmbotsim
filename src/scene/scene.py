@@ -106,18 +106,6 @@ class CropField:
         padding = 0.05
         self.padded_obstacles = [padd_obstacle(obs,padding) for obs in self.obstacles]
 
-        # Extra surrond points for better navmesh
-        offset = 0.5
-        ltp = left_top_pos.get_offset_position(-offset, angle)
-        ltp = ltp.get_offset_position(-offset, angle+90)
-        mtp = ltp.get_offset_position(field_length/2 + offset, angle)
-        rtp = ltp.get_offset_position(field_length + 2*offset, angle)
-        lbp = ltp.get_offset_position(row_length+2*offset, angle+90)
-        mbp = lbp.get_offset_position(field_length/2 + offset, angle)
-        rbp = rtp.get_offset_position(row_length+2*offset, angle+90)
-        self.surround_extra_points = [ltp,rtp,lbp,rbp]
-        self.surround_extra_points = [tuple(p) for p in self.surround_extra_points]
-
         # For editor
         draggable_objects = {}
         draggable_objects["field-left_top_pos"] = left_top_pos
@@ -297,8 +285,7 @@ class Scene:
         for obs in self.crop_field.padded_obstacles:
             obstacles.append([(p.x,p.y) for p in obs])
         #obstacles = [(p.x, p.y) for obs in self.crop_field.obstacles for p in obs
-        extra_points = self.crop_field.surround_extra_points
-        self.navmesh = NavMesh([(0,0),(9,0),(9,7),(0,7)], points=extra_points, obstacles=obstacles)
+        self.navmesh = NavMesh([(0,0),(9,0),(9,7),(0,7)], obstacles=obstacles)
         self.draggable_objects = {key: value for key, value in self.draggable_objects.items() if "field" not in key}
         self.draggable_objects.update(self.crop_field.reset(self.config["field"]))
 

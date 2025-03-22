@@ -120,8 +120,8 @@ class Polygon:
             # If cross product is 0, the three points are collinear
             # Some definitions of convexity allow collinear points, others don't
             # Here we're allowing collinear points
-            #if cross_product != 0:
-            if abs(cross_product) >= 0.000001:
+            #if abs(cross_product) >= 0.000001:
+            if cross_product != 0:
                 current_sign = 1 if cross_product > 0 else -1
                 
                 # If sign is not initialized, set it
@@ -181,8 +181,8 @@ class NavMesh:
             segments.extend([[start_index + i, start_index + (i + 1) % len(obs)] for i in range(len(obs))])
         # Pack and triangulate
         data = {'vertices': np.array(points), 'segments': np.array(segments), 'holes': np.array(holes)}
-        triangulated = tr.triangulate(data, 'p')
-        #triangulated = tr.triangulate(data, 'pq30')
+        #triangulated = tr.triangulate(data, 'p')
+        triangulated = tr.triangulate(data, 'pq10')
         if 'triangles' in triangulated:
             self.triangles = triangulated['triangles']
             self.vertices = triangulated['vertices']
@@ -223,43 +223,32 @@ class NavMesh:
                     break
             if common_segment is None: raise ValueError("No common segment - Shouldn't happen")
 
-            # get common segment of poly1
-            common_seg_1 = None
-            for seg in poly1.segments:
-                if seg == common_segment:
-                    common_seg_1 = seg
-                    break
-            # find indexes of segment for poly1
-            segment_indexes_1 = []
-            for i, p in enumerate(poly1.points):
-                if p in (common_segment.p1, common_segment.p2): segment_indexes_1.append(i)
-            if len(segment_indexes_1) != 2: raise ValueError("Not 2 point for segment - Shouldn't happen")
-            segment_end_index_1 = segment_indexes_1[0] if common_seg_1.p2==poly1.points[segment_indexes_1[0]] else segment_indexes_1[1]
-            new_points = []
-            # add poly1 points
-            for i in range(len(poly1.points)):
-                index = (segment_end_index_1 + i) % len(poly1.points)
-                new_points.append(poly1.points[index])
+            def get_points_in_order(poly, common_segment):
+                # get common segment of poly
+                common_seg = None
+                for seg in poly.segments:
+                    if seg == common_segment:
+                        common_seg = seg
+                        break
+                # find point indexes of common segment for poly
+                segment_indexes = []
+                for i, p in enumerate(poly.points):
+                    if p in (common_segment.p1, common_segment.p2): segment_indexes.append(i)
+                if len(segment_indexes) != 2: raise ValueError("Not 2 point for segment - Shouldn't happen")
+                segment_end_index = segment_indexes[0] if common_seg.p2==poly.points[segment_indexes[0]] else segment_indexes[1]
+                # add poly points
+                points_in_order = []
+                for i in range(len(poly.points)):
+                    index = (segment_end_index + i) % len(poly.points)
+                    points_in_order.append(poly.points[index])
+                return points_in_order
 
-            # get common segment of poly2
-            common_seg_2 = None
-            for seg in poly2.segments:
-                if seg == common_segment:
-                    common_seg_2 = seg
-                    break
-            # find indexes of segment for poly2
-            segment_indexes_2 = []
-            for i, p in enumerate(poly2.points):
-                if p in (common_segment.p1, common_segment.p2): segment_indexes_2.append(i)
-            if len(segment_indexes_2) != 2: raise ValueError("Not 2 point for segment - Shouldn't happen")
-            segment_end_index_2 = segment_indexes_2[0] if common_seg_2.p2==poly2.points[segment_indexes_2[0]] else segment_indexes_2[1]
-            # add poly2 points
-            for i in range(len(poly2.points)):
-                index = (segment_end_index_2 + i) % len(poly2.points)
-                point = poly2.points[index]
-                if point not in new_points: new_points.append(point)
-
-            if len(new_points) != len(poly1.points) + len(poly2.points) - 2: raise ValueError("Final list is missing points")
+            new_points = get_points_in_order(poly1, common_segment)
+            new_points2 = get_points_in_order(poly2, common_segment)
+            for p in new_points2:
+                if p in new_points: continue # skip segment points
+                new_points.append(p)
+            if len(new_points) != len(poly1.points) + len(poly2.points) - 2: raise ValueError("Final list for merged poly is missing points")
 
             return Polygon(new_points)
 
