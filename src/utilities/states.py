@@ -1,14 +1,5 @@
 from enum import Enum
 
-class AgentState(Enum):
-    IDLE = "Idle"
-    TRAVEL_FAST = "TravelFast"
-    TRAVEL_SLOW = "TravelSlow"
-    WORK_SCAN = "WorkScan"
-    WORK_PROCESS = "WorkProcess"
-    CHARGING = "Charging"
-    DISCHARGED = "Discharged"
-
 class CropRowState(Enum):
     UNPROCESSED = "unprocessed"
     PROCESSED = "processed"

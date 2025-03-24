@@ -3,23 +3,9 @@ from agent.movement import BaseMovement
 from agent.battery import BaseBattery
 from utilities.utils import Vec2f
 from path_planning.navmesh import NavMesh
-from agent.agent_state_machine import AgentStateMachine
-
-from utilities.states import AgentState
+from agent.agent_state_machine import State, IdleState, DischargedState
 
 from utilities.configuration import TOLERANCE_DISTANCE, TOLERANCE_ANGLE, MAX_FORWARD_VELOCITY
-from utilities.configuration import BATTERY_DISCHARGE_STATE_IDLE, BATTERY_DISCHARGE_STATE_TRAVEL, BATTERY_DISCHARGE_STATE_WORK_SCAN, BATTERY_DISCHARGE_STATE_WORK_PROCESS, BATTERY_CHARGE_STATE_CHARGING
-
-
-state_power_dict = {
-    AgentState.IDLE: BATTERY_DISCHARGE_STATE_IDLE ,
-    AgentState.TRAVEL_FAST: BATTERY_DISCHARGE_STATE_TRAVEL,
-    AgentState.TRAVEL_SLOW: BATTERY_DISCHARGE_STATE_TRAVEL,
-    AgentState.WORK_SCAN: BATTERY_DISCHARGE_STATE_WORK_SCAN,
-    AgentState.WORK_PROCESS: BATTERY_DISCHARGE_STATE_WORK_PROCESS,
-    AgentState.CHARGING: BATTERY_CHARGE_STATE_CHARGING,
-    AgentState.DISCHARGED: 0,
-}
 
 
 class Agent:
@@ -44,6 +30,7 @@ class Agent:
                  direction:Vec2f,
                  movement:BaseMovement,
                  battery:BaseBattery,
+                 navmesh,
                  velocity_l:float=0,
                  velocity_r:float=0):
         self.id = id
@@ -55,81 +42,57 @@ class Agent:
         
         self.movement = movement
         self.battery = battery
-        self.state_machine = AgentStateMachine(self)
 
         self.color = color
         self.spawn_position = position
 
+        self.navmesh = navmesh
         self.path:list = []
         self.task = None
 
+        self.state = IdleState(self)  # Initial state
+        self.state.on_enter()
+        self.state.update()
+
         self.update_count = 0
     
+    def change_state(self, new_state:State):
+        self.state.on_exit()
+        self.state = new_state
+        self.state.on_enter()
 
-    def update(self, dt:int, navmesh:NavMesh):
+    def update(self, dt:int):
         """ Only for step in environment """
-        self.state_machine.update_state()
-        def update_path():
-            # Calculate path to task target
-            interval = 50
-            if self.task is not None:# and self.update_count%interval==0:
-                self.path, _ = navmesh.find_shortest_path(tuple(self.position), tuple(self.task.target.position))
-                self.path = [Vec2f(pos) for pos in self.path]
+        self.update_count += 1
+        self.state.manage_battery(dt)
+        self.state.update()
+        if isinstance(self.state, DischargedState): return
 
-            # Update path
-            if self.path:
-                while True:
-                    if len(self.path)==0: break
-                    if self.position.is_close(self.path[0], TOLERANCE_DISTANCE):
-                        self.path.pop(0)
-                    else: break
-
-        match self.state_machine.state:
-            case AgentState.DISCHARGED:
-                return
-            case AgentState.IDLE:
-                #update_path()
-                pass
-            case AgentState.CHARGING:
-                pass
-            case AgentState.WORK_SCAN:
-                self.task.object.process()
-            case AgentState.WORK_PROCESS:
-                self.task.object.process()
-            case AgentState.TRAVEL_SLOW:
-                #update_path()
-                pass
-            case AgentState.TRAVEL_FAST:
-                #update_path()
-                pass
-        update_path()
-
-        # Decrease battery based on state
-        state = self.state_machine.get_state()
-        if state == AgentState.CHARGING:
-            self.battery.charge(power_w=state_power_dict[state], time_s=dt)
-        elif state==AgentState.TRAVEL_SLOW or state==AgentState.TRAVEL_FAST:
-            self.battery.discharge(power_w=state_power_dict[state]*self.velocity_l/MAX_FORWARD_VELOCITY, time_s=dt)
-        else:
-            self.battery.discharge(power_w=state_power_dict[state], time_s=dt)
-
-        if self.task is not None and self._has_reached_target():
-            self.path = []
-            self.update_count = 0
-
-        # Get new position, direction, velocity, acceleration
+        # Get new position, direction, velocity
         m1, m2 = self._get_actions()
         self.position, self.direction, self.velocity_l, self.velocity_r = self.movement.move(
             dt, m1, m2, self.position, self.direction, self.velocity_l
         )
 
-        if self.task is not None: self.update_count += 1
-        self.state_machine.update_state()
     
     def on_task_assigned(self, new_task):
         self.task = new_task
+        self.set_path()
+    
+    def set_path(self):
+        if self.task is not None:
+            self.path, _ = self.navmesh.find_shortest_path(tuple(self.position), tuple(self.task.target.position))
+            self.path = [Vec2f(pos) for pos in self.path]
+
+    def update_path(self):
+        if self.path:
+            while True:
+                if len(self.path)==0: break
+                if self.position.is_close(self.path[0], TOLERANCE_DISTANCE):
+                    self.path.pop(0)
+                else: break
      
-    def _has_reached_target(self):
+    def has_reached_target(self):
         """Checks if the agent has reached its target."""
         # If target has no direction requirement, just check position
         if len(self.path) == 1 and self.task.target.direction is None:
@@ -146,8 +109,6 @@ class Agent:
 
     def _get_actions(self):
         """Computes the rotation and acceleration inputs based on target."""
-        if self.state_machine.get_state() in {AgentState.DISCHARGED, AgentState.CHARGING}:
-            return 0, 0  # No movement when discharged or charging
         
         if not self.task:
             return 0, 0  # No movement if no target

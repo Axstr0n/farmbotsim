@@ -31,7 +31,7 @@ class Preview(ABC):
 
         self.step_count = 0
 
-        self.agents, self.agent_objects = init_agents(n_agents, self.config["spawning_area"])
+        self.agents, self.agent_objects = init_agents(n_agents, self.config["spawning_area"], self.scene.navmesh)
 
     def handle_events(self):
         events = pygame.event.get()  # Get events once
@@ -44,7 +44,7 @@ class Preview(ABC):
     
     def update(self):
         for agent_id,agent in self.agent_objects.items():
-            agent.update(0.1, self.scene.navmesh)
+            agent.update(0.1)
             
     def render(self):
         BG = (40,40,40)

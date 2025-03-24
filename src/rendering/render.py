@@ -3,7 +3,8 @@ import math
 
 from rendering.camera import Camera
 
-from utilities.states import AgentState, CropState, CropRowState
+from agent.agent_state_machine import DischargedState
+from utilities.states import CropState, CropRowState
 from utilities.utils import Vec2f, generate_colors
 from utilities.configuration import AGENT_RADIUS, CROP_RADIUS, CHARGING_STATION_WIDTH, CHARGING_STATION_HEIGHT
 
@@ -51,15 +52,15 @@ COLORS = {
 def render_agents(screen:pygame.surface, camera:Camera, agents):
     for i, agent_id in enumerate(agents):
         agent = agents[agent_id]
-        color = agent.color if agent.state_machine.get_state()!=AgentState.DISCHARGED else COLORS["agent_discharged"]
+        color = agent.color if not isinstance(agent.state, DischargedState) else COLORS["agent_discharged"]
         pos = camera.scene_to_screen_pos(agent.position)
         dir_end = camera.scene_to_screen_pos(agent.position + agent.direction*0.3)
         radius = camera.scene_to_screen_val(AGENT_RADIUS)
         pygame.draw.circle(screen, color, pos, radius)
-        pygame.draw.aaline(screen, color, pos, dir_end, 1)
+        pygame.draw.line(screen, color, pos, dir_end, 1)
 
         # Task targets
-        if agent.task is not None and agent.state_machine.get_state() != AgentState.DISCHARGED:
+        if agent.task is not None:
             target_size = 0.05
             size = camera.scene_to_screen_val(target_size)
             pos = camera.scene_to_screen_pos(agent.task.target.position)
@@ -70,10 +71,8 @@ def render_agents(screen:pygame.surface, camera:Camera, agents):
         if len(agent.path) > 0:
             line_width = 2
             path = [agent.position] + agent.path
-            for i in range(len(path)-1):
-                c = camera.scene_to_screen_pos(path[i])
-                n = camera.scene_to_screen_pos(path[i+1])
-                pygame.draw.line(screen, COLORS["path"], c, n, line_width)
+            path = [camera.scene_to_screen_pos(p) for p in path]
+            pygame.draw.lines(screen, COLORS["path"], False, path, line_width)
 
 def render_navmesh(screen:pygame.surface, camera:Camera, navmesh):
     line_width = 1
@@ -97,7 +96,7 @@ def render_graph(screen:pygame.surface, camera:Camera, navmesh):
 def render_coordinate_system(screen:pygame.surface, camera:Camera, font:pygame.font):
     def draw_arrow(screen, start, end, color, width=2, arrow_size=10):
         # Draw the line
-        pygame.draw.aaline(screen, color, start, end, width)
+        pygame.draw.line(screen, color, start, end, width)
         # Calculate the angle of the arrow
         angle = math.atan2(end[1] - start[1], end[0] - start[0])
         # Calculate the points for the arrowhead
@@ -213,7 +212,7 @@ def render_gui_agents(gui, agents, draw_path=False, draw_task_target=False):
         p = agent.position
         d = agent.direction
         b = f"{agent.battery.get_soc():.2f}%"
-        gui.add_text_with_color("▮", agent.color if agent.state_machine.get_state()!=AgentState.DISCHARGED else (255,255,255))
+        gui.add_text_with_color("▮", agent.color if not isinstance(agent.state, DischargedState) else COLORS["agent_discharged"])
         gui.same_line()
         gui.add_text(f" {str(agent_id).ljust(8)}")
         gui.same_line()
@@ -223,7 +222,7 @@ def render_gui_agents(gui, agents, draw_path=False, draw_task_target=False):
         gui.same_line()
         gui.add_text(f" V:{f'{agent.velocity_l:.2f}'.rjust(5)}")
         gui.same_line()
-        gui.add_text(f" {str(agent.state_machine.get_state().value).ljust(12)}")
+        gui.add_text(f" {str(agent.state.__class__.__name__)[:-5].ljust(12)}")
         gui.same_line()
         gui.add_text(f" {b.ljust(6)}")
 

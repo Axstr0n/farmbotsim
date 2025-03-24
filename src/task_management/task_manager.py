@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 
 from agent.agent import Agent
+from agent.agent_state_machine import IdleState, ChargingState, DischargedState
 from scene.scene import Crop, ChargingStation, CropField
 from utilities.utils import Vec2f, Target
-from utilities.states import AgentState, CropRowState, CropState
+from utilities.states import CropRowState, CropState
 from utilities.configuration import TOLERANCE_DISTANCE
 
 
@@ -86,7 +87,7 @@ class BaseTaskManager(ABC):
             agent = agents[agent_id]
 
             # Discharged agent
-            if agent.state_machine.get_state() == AgentState.DISCHARGED:
+            if isinstance(agent.state, DischargedState):
                 agent_ids_to_remove.append(agent_id)
                 if agent.task is None: continue
                 # # If agent has task - unassign target and task TO DO
@@ -102,7 +103,7 @@ class BaseTaskManager(ABC):
                 agent.task = None
 
             # Agent with full battery
-            elif agent.battery.get_soc() >= 100 and agent.state_machine.get_state() == AgentState.CHARGING:
+            elif agent.battery.get_soc() >= 100 and isinstance(agent.state, ChargingState):
                 station = stations[agent.task.target_id]
                 station.release_agent(agent)
                 task = self.get_crop_task(agent, crop_field, obstacles)
@@ -210,7 +211,7 @@ class TaskManager1(BaseTaskManager):
                 agent = agents[agent_id]
                 # if agent.task is not None and agent.task.target_id.startswith("crop"):
                 #     if crop_field.crops_dict[agent.task.target_id].state != CropState.PROCESSED: continue
-                if agent.state_machine.get_state() == AgentState.IDLE:
+                if isinstance(agent.state, IdleState):
                     task = self.get_crop_task(agent, crop_field, obstacles)
                     #if agent.task is not None and agent.task.target_id == task.target_id: continue
                     self.assign_task(task, agent, crop_field, stations)

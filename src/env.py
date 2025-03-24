@@ -48,23 +48,7 @@ class ContinuousMARLEnv(ParallelEnv):
         self.scene.reset()
         self.task_manager.reset()
 
-        # Initialize agents
-        # self.agents = self.possible_agents[:]
-        # agent_colors = generate_colors(self.n_agents, 0.11)
-        # spawning_area = self.scene.config["spawning_area"]
-        # self.agent_objects = {
-        #     agent_id: Agent(
-        #         id=agent_id,
-        #         color=agent_colors[i],
-        #         position=get_random_point_in_rect(spawning_area),
-        #         direction=Vec2f(1, 0).rotate(np.random.uniform(0, 2 * math.pi)),
-        #         movement = RombaMovement(),
-        #         battery=StandardBattery(initial_soc=50)
-        #     )
-        #     for i,agent_id in enumerate(self.agents)
-        # }
-
-        self.agents, self.agent_objects = init_agents(self.n_agents, self.scene.config["spawning_area"])
+        self.agents, self.agent_objects = init_agents(self.n_agents, self.scene.config["spawning_area"], self.scene.navmesh)
 
         self.rewards = {agent_id: 0 for agent_id in self.agents}
         self.terminations = {agent_id: False for agent_id in self.agents}
@@ -97,7 +81,7 @@ class ContinuousMARLEnv(ParallelEnv):
             speed_factor = 10
             dt = (1 / self.metadata['render_fps']) * min(10, speed_factor)
             #dt = (1 / self.metadata['render_fps'])
-            agent.update(dt, self.scene.navmesh)
+            agent.update(dt)
         
         # Check if crop field is processed
         self.scene.crop_field.update_field()
@@ -188,7 +172,8 @@ class ContinuousMARLEnv(ParallelEnv):
             #endregion
 
             pygame.display.flip()
-            self.clock.tick(self.metadata['render_fps']*20)
+            #self.clock.tick(self.metadata['render_fps'])
+            self.clock.tick() # unlimited
 
     def close(self):
         if self.screen is not None:

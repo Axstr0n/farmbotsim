@@ -9,7 +9,7 @@ from agent.movement import RombaMovement
 from agent.battery import StandardBattery
 
 
-def init_agents(n_agents, spawning_area):
+def init_agents(n_agents, spawning_area, navmesh=None):
     def get_random_point_in_rect(spawning_area):
         left_top = spawning_area["left_top_pos"]
         width = spawning_area["width"]
@@ -38,7 +38,8 @@ def init_agents(n_agents, spawning_area):
             direction=Vec2f(1, 0).rotate(np.random.uniform(0, 2 * math.pi)),
             movement = RombaMovement(),
             #battery=StandardBattery(initial_soc=random.randint(50,70))
-            battery=StandardBattery(initial_soc=100)
+            battery=StandardBattery(initial_soc=100),
+            navmesh=navmesh
         )
         for i,agent_id in enumerate(agents)
     }

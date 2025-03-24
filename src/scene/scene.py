@@ -9,7 +9,7 @@ from utilities.utils import Vec2f
 from utilities.utils import generate_colors, padd_obstacle
 from rendering.camera import Camera
 from path_planning.navmesh import NavMesh
-from utilities.states import AgentState, CropState, CropRowState
+from utilities.states import CropState, CropRowState
 from utilities.configuration import CROP_SCAN_TIME, CROP_PROCESS_TIME, FONT_PATH, CHARGING_STATION_WAITING_OFFSET
 
 from rendering.render import render_coordinate_system,render_navmesh,render_graph,render_crop_field,render_obstacles,render_charging_stations,render_spawning_area,render_draggable_points,render_mouse_scene_pos
