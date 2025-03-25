@@ -121,7 +121,7 @@ class WorkProcessState(State):
         if self.agent.task is not None and not self.agent.task.target_id.startswith("crop"):
             self.agent.change_state(TravelState(self.agent))
         elif self.agent.task.object.state == CropState.PROCESSED:
-            self.agent.task = None
+            #self.agent.task = None
             self.agent.change_state(IdleState(self.agent))
         
         else: self.agent.task.object.process()

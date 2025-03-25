@@ -43,6 +43,7 @@ class Preview(ABC):
         return events
     
     def update(self):
+        self.scene.crop_field.update()
         for agent_id,agent in self.agent_objects.items():
             agent.update(0.1)
             

@@ -15,13 +15,15 @@ from utilities.configuration import CROP_SCAN_TIME, CROP_PROCESS_TIME, FONT_PATH
 from rendering.render import render_coordinate_system,render_navmesh,render_graph,render_crop_field,render_obstacles,render_charging_stations,render_spawning_area,render_draggable_points,render_mouse_scene_pos
 
 class Crop:
-    def __init__(self, id:str, position:Vec2f, required_scan_time:int, required_process_time:int, row_id:str, state:CropState=CropState.UNPROCESSED):
+    def __init__(self, id:str, position:Vec2f, required_scan_time:int, required_process_time:int, required_grow_time:int, state:CropState=CropState.UNPROCESSED):
         self.id = id
         self.position = position
         self.state = state
         self.worked_time = 0
         self.required_scan_time = required_scan_time
         self.required_process_time = required_process_time
+        self.grow_time = 0
+        self.required_grow_time = required_grow_time
 
     def process(self):
         if self.state == CropState.PROCESSED:
@@ -42,8 +44,8 @@ class Crop:
         match self.state:
             case CropState.UNPROCESSED: pass
             case CropState.SCANNING: self.state = CropState.UNPROCESSED
-            case CropState.SCANNED: self.state = CropState.SCANNED
-            case CropState.PROCESSING: self.state = CropState.SCANNED
+            case CropState.SCANNED: self.state = CropState.UNPROCESSED
+            case CropState.PROCESSING: self.state = CropState.UNPROCESSED
             case CropState.PROCESSED: self.state = CropState.PROCESSED
         self.worked_time = 0
         # if self.state == CropState.PROCESSED:
@@ -85,7 +87,7 @@ class CropField:
                     position=pos,
                     required_scan_time=CROP_SCAN_TIME,
                     required_process_time=CROP_PROCESS_TIME,
-                    row_id=row_id
+                    required_grow_time=3*3600
                 )
             top_pos = top_pos.get_offset_position(row_spacing, angle)
 
@@ -117,9 +119,17 @@ class CropField:
 
         return draggable_objects
     
-    def update_field(self):
+    def update(self):
+        """ Simulate growing on crops """
+        for crop_id, crop in self.crops_dict.items():
+            if crop.state == CropState.PROCESSED:
+                crop.grow_time += 1
+                if crop.grow_time >= crop.required_grow_time:
+                    crop.state = CropState.UNPROCESSED
+                    crop.grow_time = 0
+
+    def update_row_processing_status(self):
         for row_id, row_state in self.rows_states.items():
-            if row_state == CropRowState.PROCESSED: continue
             state = CropRowState.PROCESSED
             for n in range(0,self.n_crops_per_row):
                 crop = self.crops_dict[f"crop_{row_id.split("_")[1]}_{n}"]

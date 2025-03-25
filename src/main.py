@@ -49,7 +49,7 @@ if __name__ == "__main__":
             
             # Step the environment
             next_observations, rewards, terminations, truncations, infos = env.step(actions)
-            if render_env and env.step_count%10==0: env.render() # render every n simulation frames
+            if render_env and env.step_count%1000==0: env.render() # render every n simulation frames
             #input("Enter")
             
             # Accumulate rewards

@@ -55,7 +55,7 @@ class BaseTaskManager(ABC):
                 row_id = f'row_{agent.task.target_id.split("_")[1]}'
                 crop_field.rows_assign[row_id] = False
                 agent.task.object.quit_work()
-                crop_field.update_field()
+                crop_field.update_row_processing_status()
         #     # Mark previous target as not assigned
         #     self.mark_as(agent.task.target_id, False, crop_rows, stations)
 
@@ -99,7 +99,7 @@ class BaseTaskManager(ABC):
                     row_id = f'row_{agent.task.target_id.split("_")[1]}'
                     crop_field.rows_assign[row_id] = False
                     agent.task.object.quit_work()
-                    crop_field.update_field()
+                    crop_field.update_row_processing_status()
                 agent.task = None
 
             # Agent with full battery

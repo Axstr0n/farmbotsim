@@ -99,7 +99,7 @@ class TaskPreview(Preview):
                     row_id = f'row_{agent.task.target_id.split("_")[1]}'
                     self.scene.crop_field.rows_assign[row_id] = False
                     agent.task.object.quit_work()
-                    self.scene.crop_field.update_field()
+                    self.scene.crop_field.update_row_processing_status()
                 agent.task = None
 
             if target_id.startswith("station"):

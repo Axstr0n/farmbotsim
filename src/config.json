@@ -1,8 +1,8 @@
 {
     "spawning_area": {
         "left_top_pos": [
-            3.99,
-            5.28
+            1.76,
+            5.85
         ],
         "width": 4,
         "height": 1,
@@ -10,44 +10,44 @@
     },
     "field": {
         "left_top_pos": [
-            2.83,
-            1.91
+            0.62,
+            0.64
         ],
         "angle": 0.0,
-        "n_rows": 8,
+        "n_rows": 14,
         "row_spacing": 0.5,
-        "n_crops_per_row": 4,
+        "n_crops_per_row": 17,
         "crop_spacing": 0.3
     },
     "charging_stations": [
         {
             "position": [
-                2.16,
-                1.38
+                7.85,
+                1.68
             ],
             "queue_direction": [
-                -0.66,
-                0.75
+                -0.05,
+                1.0
             ]
         },
         {
             "position": [
-                6.91,
-                1.17
+                8.57,
+                0.72
             ],
             "queue_direction": [
-                0.5,
-                0.87
+                0.01,
+                1.0
             ]
         },
         {
             "position": [
-                2.26,
-                5.13
+                8.57,
+                4.25
             ],
             "queue_direction": [
-                -0.19,
-                0.98
+                0.05,
+                1.0
             ]
         }
     ]

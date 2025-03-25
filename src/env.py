@@ -84,7 +84,8 @@ class ContinuousMARLEnv(ParallelEnv):
             agent.update(dt)
         
         # Check if crop field is processed
-        self.scene.crop_field.update_field()
+        self.scene.crop_field.update_row_processing_status()
+        self.scene.crop_field.update()
         is_processed = self.scene.crop_field.is_processed()
         terminations = {agent_id: is_processed for agent_id in self.agents}
 

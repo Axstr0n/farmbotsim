@@ -283,11 +283,11 @@ def render_gui_crop_field(gui, crop_field):
     for row_id in crop_field.rows_states.keys():
         row_state = crop_field.rows_states[row_id]
         row_assign = crop_field.rows_assign[row_id]
-        assigned = ("assigned ".ljust(9), COLORS["crop_row_assigned"]) if row_assign!=False else ("free ".ljust(9), COLORS["crop_row_free"])
+        assigned = (f'{row_assign} '.ljust(9), COLORS["crop_row_assigned"]) if row_assign!=False else ("free ".ljust(9), COLORS["crop_row_free"])
         
         gui.add_text_with_color("▮", COLORS["crop_processed"] if row_state==CropRowState.PROCESSED else COLORS["crop_unprocessed"])
         gui.same_line()
-        gui.add_text(f"{str(row_id).ljust(6)}")
+        gui.add_text(f"{str(row_id).ljust(7)}")
         gui.same_line()
         gui.add_text_with_color(assigned[0], assigned[1])
         for crop_id, crop in crop_field.crops_dict.items():
