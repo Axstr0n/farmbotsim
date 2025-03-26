@@ -1,6 +1,6 @@
 
 from agent.movement import BaseMovement
-from agent.battery import BaseBattery
+from agent.battery import Battery
 from utilities.utils import Vec2f
 from path_planning.navmesh import NavMesh
 from agent.agent_state_machine import State, IdleState, DischargedState
@@ -17,11 +17,11 @@ class Agent:
         color (tuple): Color of agent
         position (Vec2f): Position of agent
         direction (Vec2f): Direction of agent
-        velocity (float): Velocity of agent
-        acceleration (float): Acceleration of agent
         movement (BaseMovement): Injected class that represents movement logic
         battery (BaseBattery): Injected class that represents battery
-        state (AgentState): State of agent
+        navmesh (NavMesh): Class for pathfinding
+        velocity_l (float): Linear velocity
+        velocity_r (float): Rotational (angular) velocity
     """
     def __init__(self,
                  id:str,
@@ -29,8 +29,8 @@ class Agent:
                  position:Vec2f,
                  direction:Vec2f,
                  movement:BaseMovement,
-                 battery:BaseBattery,
-                 navmesh,
+                 battery:Battery,
+                 navmesh:NavMesh,
                  velocity_l:float=0,
                  velocity_r:float=0):
         self.id = id
@@ -61,17 +61,17 @@ class Agent:
         self.state = new_state
         self.state.on_enter()
 
-    def update(self, dt:int):
+    def update(self, simulation_step:int, date_time_manager):
         """ Only for step in environment """
-        self.update_count += 1
-        self.state.manage_battery(dt)
+        self.update_count += simulation_step
+        self.state.manage_battery(simulation_step, date_time_manager)
         self.state.update()
         if isinstance(self.state, DischargedState): return
 
         # Get new position, direction, velocity
         m1, m2 = self._get_actions()
         self.position, self.direction, self.velocity_l, self.velocity_r = self.movement.move(
-            dt, m1, m2, self.position, self.direction, self.velocity_l
+            simulation_step, m1, m2, self.position, self.direction, self.velocity_l
         )
 
     

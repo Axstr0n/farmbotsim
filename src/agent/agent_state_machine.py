@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from utilities.states import CropState
 from utilities.configuration import MAX_FORWARD_VELOCITY
-from utilities.configuration import BATTERY_DISCHARGE_STATE_IDLE, BATTERY_DISCHARGE_STATE_TRAVEL, BATTERY_DISCHARGE_STATE_WORK_SCAN, BATTERY_DISCHARGE_STATE_WORK_PROCESS, BATTERY_CHARGE_STATE_CHARGING
+from utilities.configuration import BATTERY_DISCHARGE_STATE_IDLE, BATTERY_DISCHARGE_STATE_TRAVEL, BATTERY_DISCHARGE_STATE_WORK_SCAN, BATTERY_DISCHARGE_STATE_WORK_PROCESS
 
 DEBUG_PRINT_STATE_CHANGE = False
 
@@ -16,7 +16,7 @@ class State(ABC):
             self.agent.change_state(DischargedState(self.agent))
     def on_exit(self):
         pass
-    def manage_battery(self, dt):
+    def manage_battery(self, simulation_step, date_time_manager):
         raise NotImplementedError("This method should be overridden.")
 
 class IdleState(State):
@@ -31,13 +31,13 @@ class IdleState(State):
     def on_exit(self):
         if DEBUG_PRINT_STATE_CHANGE: print(f"{self.agent.id} Exiting Idle State")
     
-    def manage_battery(self, dt):
-        self.agent.battery.discharge(power_w=BATTERY_DISCHARGE_STATE_IDLE, time_s=dt)
+    def manage_battery(self, simulation_step, date_time_manager):
+        self.agent.battery.discharge(power_w=BATTERY_DISCHARGE_STATE_IDLE, time_s=simulation_step)
 
 class DischargedState(State):
     def on_enter(self):
         print(f"{self.agent.id} Entering Discharged State.")
-        self.agent.task = None
+        #self.agent.task = None
     
     def update(self):
         pass
@@ -45,7 +45,7 @@ class DischargedState(State):
     def on_exit(self):
         raise ValueError("Shouldn't go out of DischargedState")
 
-    def manage_battery(self, dt):
+    def manage_battery(self, simulation_step, date_time_manager):
         pass
 
 class TravelState(State):
@@ -75,8 +75,8 @@ class TravelState(State):
         #if self.agent.task.target_id == "idle": self.agent.task = None
         if DEBUG_PRINT_STATE_CHANGE: print(f"{self.agent.id} Exiting Travel State")
 
-    def manage_battery(self, dt):
-        self.agent.battery.discharge(power_w=BATTERY_DISCHARGE_STATE_TRAVEL*self.agent.velocity_l/MAX_FORWARD_VELOCITY, time_s=dt)
+    def manage_battery(self, simulation_step, date_time_manager):
+        self.agent.battery.discharge(power_w=BATTERY_DISCHARGE_STATE_TRAVEL*self.agent.velocity_l/MAX_FORWARD_VELOCITY, time_s=simulation_step)
 
 class ChargingState(State):
     def on_enter(self):
@@ -90,8 +90,9 @@ class ChargingState(State):
     def on_exit(self):
         if DEBUG_PRINT_STATE_CHANGE: print(f"{self.agent.id} Exiting Charging State")
     
-    def manage_battery(self, dt):
-        self.agent.battery.charge(power_w=BATTERY_CHARGE_STATE_CHARGING, time_s=dt)
+    def manage_battery(self, simulation_step, date_time_manager):
+        month = date_time_manager.get_month()
+        self.agent.battery.charge(time_s=simulation_step, month=month)
 
 class WorkScanState(State):
     def on_enter(self):
@@ -109,8 +110,8 @@ class WorkScanState(State):
     def on_exit(self):
         if DEBUG_PRINT_STATE_CHANGE: print(f"{self.agent.id} Exiting WorkScan State")
     
-    def manage_battery(self, dt):
-        self.agent.battery.discharge(power_w=BATTERY_DISCHARGE_STATE_WORK_SCAN, time_s=dt)
+    def manage_battery(self, simulation_step, date_time_manager):
+        self.agent.battery.discharge(power_w=BATTERY_DISCHARGE_STATE_WORK_SCAN, time_s=simulation_step)
 
 class WorkProcessState(State):
     def on_enter(self):
@@ -129,6 +130,6 @@ class WorkProcessState(State):
     def on_exit(self):
         if DEBUG_PRINT_STATE_CHANGE: print(f"{self.agent.id} Exiting WorkProcess State")
 
-    def manage_battery(self, dt):
-        self.agent.battery.discharge(power_w=BATTERY_DISCHARGE_STATE_WORK_PROCESS, time_s=dt)
+    def manage_battery(self, simulation_step, date_time_manager):
+        self.agent.battery.discharge(power_w=BATTERY_DISCHARGE_STATE_WORK_PROCESS, time_s=simulation_step)
 

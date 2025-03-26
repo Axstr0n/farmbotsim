@@ -32,9 +32,6 @@ class NavmeshPreview(Preview):
                         agent.on_task_assigned(task)
         return True
     
-    def update(self):
-        super().update()
-
     def render(self):
         super().render()
 

@@ -11,7 +11,7 @@ from rendering.camera import Camera
 from utilities.configuration import FONT_PATH
 
 from utilities.create import init_agents
-from rendering.render import render_agents, render_gui_agents, render_gui_stations, render_gui_crop_field, render_gui_tasks
+from rendering.render import render_agents, render_gui_date_time, render_gui_agents, render_gui_stations, render_gui_crop_field, render_gui_tasks
 
 
 class ContinuousMARLEnv(ParallelEnv):
@@ -73,19 +73,16 @@ class ContinuousMARLEnv(ParallelEnv):
         truncations = {agent_id: False for agent_id in self.agents}
         infos = {agent_id: {} for agent_id in self.agents}
 
+        simulation_step = 1
         for agent_id, action in actions.items():
             agent = self.agent_objects[agent_id]
             rot_input, acc_input = action
             
             # Update agent state
-            speed_factor = 10
-            dt = (1 / self.metadata['render_fps']) * min(10, speed_factor)
-            #dt = (1 / self.metadata['render_fps'])
-            agent.update(dt)
+            agent.update(simulation_step, self.scene.date_time_manager) # simulation step - 1 second
         
         # Check if crop field is processed
-        self.scene.crop_field.update_row_processing_status()
-        self.scene.crop_field.update()
+        self.scene.update(simulation_step)
         is_processed = self.scene.crop_field.is_processed()
         terminations = {agent_id: is_processed for agent_id in self.agents}
 
@@ -154,6 +151,7 @@ class ContinuousMARLEnv(ParallelEnv):
 
                 self.gui.add_text("")
                 self.gui.add_text(f"Step: {self.step_count}")
+                render_gui_date_time(self.gui, self.scene.date_time_manager)
 
                 if draw_agent_stats:
                     render_gui_agents(self.gui, self.agent_objects, draw_task_target=True)

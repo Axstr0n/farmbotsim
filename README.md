@@ -48,14 +48,11 @@ Follow these steps to get farmbotsim running locally:
     ```
 
 ## Usage
-After installation change to `src` directory:
-```bash
-cd src
+After installation you can run main file like:
 ```
-Now you can run main simulation with:
-```bash
-python main.py
+batch_files/main.bat
 ```
+and other preview files similarly.
 
 ## Code Structure Overview
 
@@ -64,6 +61,8 @@ The **farmbotsim** project is organized into several directories that help separ
 `assets/` - Stores external files such as fonts.
 
 `batch_files/` - Contains scripts for running all preview simulations.
+
+`batteries/` - Contains battery specific configuration and charge characteristics.
 
 `screenshots/` - Contains screenshots of project.
 
@@ -75,12 +74,11 @@ The **farmbotsim** project is organized into several directories that help separ
 - `scene/` - Defines the scene, crops, charging stations.
 - `task_management/` - Manages task assignments.
 - `utilities/` - Common utilities and helper functions used across the project including configuration.
+- `config.json` - Configuration file for scene/layout.
 - `env.py` - Contains main class for simulation.
 - `main.py` - Runs the simulation.
 
 `.gitignore` - Ignores virtual environment, compiled python files.
-
-`config.json` - Configuration file for scene/layout.
 
 `README.md` - This file, which contains documentation and instructions for setting up and using the simulation.
 

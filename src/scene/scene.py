@@ -10,6 +10,7 @@ from utilities.utils import generate_colors, padd_obstacle
 from rendering.camera import Camera
 from path_planning.navmesh import NavMesh
 from utilities.states import CropState, CropRowState
+from utilities.date_time_manager import DateTimeManager
 from utilities.configuration import CROP_SCAN_TIME, CROP_PROCESS_TIME, FONT_PATH, CHARGING_STATION_WAITING_OFFSET
 
 from rendering.render import render_coordinate_system,render_navmesh,render_graph,render_crop_field,render_obstacles,render_charging_stations,render_spawning_area,render_draggable_points,render_mouse_scene_pos
@@ -119,11 +120,11 @@ class CropField:
 
         return draggable_objects
     
-    def update(self):
+    def update(self, simulation_step):
         """ Simulate growing on crops """
         for crop_id, crop in self.crops_dict.items():
             if crop.state == CropState.PROCESSED:
-                crop.grow_time += 1
+                crop.grow_time += simulation_step
                 if crop.grow_time >= crop.required_grow_time:
                     crop.state = CropState.UNPROCESSED
                     crop.grow_time = 0
@@ -282,6 +283,7 @@ class Scene:
         self.reset()
 
     def reset(self):
+        self.date_time_manager = DateTimeManager()
         # Init spawning area
         self.calculate_spawning_area()
         # Init lines
@@ -337,6 +339,11 @@ class Scene:
         self.draggable_objects["sa_width"] = top_right
         self.draggable_objects["sa_height"] = bot_left
         self.draggable_objects["sa_angle"] = bot_right
+
+    def update(self, simulation_step):
+        self.crop_field.update_row_processing_status()
+        self.crop_field.update(simulation_step)
+        self.date_time_manager.advance_time(simulation_step)
 
     def render_static(self, static_surface:pygame.Surface, camera:Camera, draw_navmesh:bool=False, draw_graph=False):
         font = pygame.font.Font(FONT_PATH, 10)

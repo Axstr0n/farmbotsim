@@ -42,10 +42,10 @@ class Preview(ABC):
             self.gui.handle_event(event)
         return events
     
-    def update(self):
-        self.scene.crop_field.update()
+    def update(self, simulation_step):
+        self.scene.crop_field.update(simulation_step)
         for agent_id,agent in self.agent_objects.items():
-            agent.update(0.1)
+            agent.update(simulation_step, self.scene.date_time_manager)
             
     def render(self):
         BG = (40,40,40)
@@ -69,13 +69,13 @@ class Preview(ABC):
         """Main loop."""
         running = True
         while running:
-
-            self.update()
+            simulation_step = 1
+            self.update(simulation_step)
             self.render()
             running = self.handle_events()
             if self.fps == None: self.clock.tick()
             else: self.clock.tick(self.fps)
-            self.step_count += 1
+            self.step_count += simulation_step
 
         pygame.quit()
 

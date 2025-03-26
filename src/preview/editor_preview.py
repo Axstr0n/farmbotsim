@@ -208,9 +208,6 @@ class SceneEditorPreview(Preview):
 
         return True
     
-    def update(self):
-        super().update()
-
     def render(self):
         self.screen.fill((40,40,40))
         self.scene.render_static(self.screen, self.camera, draw_navmesh=True)

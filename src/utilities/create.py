@@ -6,7 +6,7 @@ import random
 from utilities.utils import Vec2f, generate_colors
 from agent.agent import Agent
 from agent.movement import RombaMovement
-from agent.battery import StandardBattery
+from agent.battery import Battery
 
 
 def init_agents(n_agents, spawning_area, navmesh=None):
@@ -38,7 +38,7 @@ def init_agents(n_agents, spawning_area, navmesh=None):
             direction=Vec2f(1, 0).rotate(np.random.uniform(0, 2 * math.pi)),
             movement = RombaMovement(),
             #battery=StandardBattery(initial_soc=random.randint(50,70))
-            battery=StandardBattery(initial_soc=100),
+            battery=Battery("../batteries/battery1", initial_soc=20),
             navmesh=navmesh
         )
         for i,agent_id in enumerate(agents)

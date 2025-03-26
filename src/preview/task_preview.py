@@ -18,10 +18,7 @@ class TaskPreview(Preview):
         if events is False:  # Quit condition
             return False
         return True
-    
-    def update(self):
-        super().update()
-            
+      
     def render(self):
 
         super().render()

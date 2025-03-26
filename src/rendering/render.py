@@ -325,3 +325,7 @@ def render_gui_tasks(gui, task_manager, n_agents):
         gui.same_line()
         gui.add_text(f" {task.target_id.ljust(10)}")
         printed_agents.append(task.agent_id)
+
+def render_gui_date_time(gui, date_time_manager):
+    gui.add_text("")
+    gui.add_text(f"Date_time: {date_time_manager.get_time()}")

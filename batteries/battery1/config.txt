@@ -1,0 +1,5 @@
+capacity_wh: 500
+voltage: 24
+jan_max: Karakteristika_jan_max_polnjenje_0.txt
+jan_min: Karakteristika_jan_min_polnjenje_0.txt
+jun_max: Karakteristika_jun_max_polnjenje_0.txt

@@ -2,7 +2,7 @@ import math
 from abc import ABC, abstractmethod
 
 from utilities.utils import Vec2f
-from utilities.configuration import MAX_FORWARD_VELOCITY, MAX_ANGULAR_VELOCITY, MAX_FORWARD_WORKING_VELOCITY, WHEEL_DISTANCE, WHEEL_RADIUS
+from utilities.configuration import MAX_FORWARD_VELOCITY, MAX_ANGULAR_VELOCITY, MAX_FORWARD_WORKING_VELOCITY, WHEEL_DISTANCE, WHEEL_RADIUS, TOLERANCE_DISTANCE, TOLERANCE_ANGLE
 
 
 class BaseMovement(ABC):
@@ -10,7 +10,7 @@ class BaseMovement(ABC):
         pass
 
     @abstractmethod
-    def move(self, dt: int, m1: float, m2: float, 
+    def move(self, simulation_step: int, m1: float, m2: float, 
              position: Vec2f, direction: Vec2f, velocity: float, acceleration: float):
         """ For given inputs -> moves/updates movement parameters like position, direction, linear / rotation velocity, """
         pass
@@ -30,7 +30,7 @@ class RombaMovement(BaseMovement):
         self.wheel_distance = WHEEL_DISTANCE  # m (distance between wheels)
         self.wheel_radius = WHEEL_RADIUS  # m (radius of wheels)
         
-    def move(self, dt: int, m1: float, m2: float, position: Vec2f, direction: Vec2f, velocity: float):
+    def move(self, simulation_step: int, m1: float, m2: float, position: Vec2f, direction: Vec2f, velocity: float):
         """
         Move the robot using differential drive model.
         m1: Left motor input (-1.0 to 1.0)
@@ -52,11 +52,11 @@ class RombaMovement(BaseMovement):
         omega = (v_right - v_left) / self.wheel_distance * self.max_angular_velocity  # Angular velocity in rad/s
         
         # Calculate new direction
-        angle = omega * dt
+        angle = omega * simulation_step
         new_direction = (direction.rotate(angle)).normalize()
         
         # Calculate new position
-        new_position = position + direction * (v * dt)
+        new_position = position + direction * (v * simulation_step)
         
         # Current velocity for return value
         current_velocity = v
@@ -67,8 +67,6 @@ class RombaMovement(BaseMovement):
         """
         Compute differential drive inputs (m1, m2) to reach target position and direction.
         """
-        tolerance_angle = 0.1  # deg
-        tolerance_distance = 0.0005  # m
         
         # Initialize motor inputs
         m1 = 0.0
@@ -77,7 +75,7 @@ class RombaMovement(BaseMovement):
         distance = position.distance_to(target_position)
         
         # First, check if we need to move towards the target position
-        if distance > tolerance_distance:
+        if distance > TOLERANCE_DISTANCE:
             # Compute angle to target
             direction_to_target = (target_position - position).normalize()
             angle_to_target = direction_to_target.get_angle("deg")
@@ -90,9 +88,9 @@ class RombaMovement(BaseMovement):
             normalized_delta = delta_angle / 180.0
             
             # Basic differential drive control for turning and moving forward
-            if abs(delta_angle) > tolerance_angle:
+            if abs(delta_angle) > TOLERANCE_ANGLE:
                 # If we need to turn, adjust motor speeds accordingly
-                turn_strength = min(1.0, abs(normalized_delta) * 2)  # Scale turn strength
+                turn_strength = min(1.0, abs(normalized_delta))  # Scale turn strength
 
                 if normalized_delta < 0:  # Turn right
                     m1 = turn_strength
@@ -102,7 +100,7 @@ class RombaMovement(BaseMovement):
                     m2 = turn_strength
             else:
                 # Move straight towards the target (no turning needed)
-                speed = min(distance * 0.5, 1.0)  # Scale speed based on distance, up to a maximum of 1
+                speed = min(distance * 0.05, 1.0)  # Scale speed based on distance, up to a maximum of 1
                 m1 = speed
                 m2 = speed
         
