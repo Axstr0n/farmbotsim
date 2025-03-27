@@ -248,7 +248,7 @@ class NavMesh:
             for p in new_points2:
                 if p in new_points: continue # skip segment points
                 new_points.append(p)
-            if len(new_points) != len(poly1.points) + len(poly2.points) - 2: raise ValueError("Final list for merged poly is missing points")
+            if len(new_points) != len(poly1.points) + len(poly2.points) - 2: return None
 
             return Polygon(new_points)
 
@@ -259,6 +259,7 @@ class NavMesh:
                 raise ValueError("More than 2 poly have common segment. Shouldn't happen")
             if len(polys_with_segment) != 2: continue # boundary / hole segment
             merged_poly = merge_polys(polys_with_segment[0], polys_with_segment[1])
+            if merged_poly is None: continue
             if not merged_poly.is_convex(): continue
             if abs(polys_with_segment[0].get_area()+polys_with_segment[1].get_area()-merged_poly.get_area()) > 0.00002:
                 raise ValueError(f"Area of merged poly should be same: {polys_with_segment[0].get_area()+polys_with_segment[1].get_area()} != {merged_poly.get_area()}")

@@ -4,11 +4,13 @@ from utilities.utils import Target, Vec2f
 from task_management.task_manager import Task
 from rendering.render import render_gui_agents, render_gui_crop_field
 from preview.preview import Preview
-from utilities.configuration import CONFIG
+from utilities.configuration import NAVMESH_PREVIEW_PARAMS
+NAVMESH_PREVIEW_SIMULATION_PARAMS = NAVMESH_PREVIEW_PARAMS["simulation"]
+NAVMESH_PREVIEW_RENDER_PARAMS = NAVMESH_PREVIEW_PARAMS["render"]
 
 class NavmeshPreview(Preview):
-    def __init__(self, config, title="Preview", n_agents=0, fps=60):
-        super().__init__(config, title, n_agents, fps)
+    def __init__(self, title="Preview"):
+        super().__init__(NAVMESH_PREVIEW_SIMULATION_PARAMS, title)
         
     def handle_events(self):
         events = super().handle_events()
@@ -33,11 +35,11 @@ class NavmeshPreview(Preview):
         return True
     
     def render(self):
-        super().render()
+        super().render(NAVMESH_PREVIEW_RENDER_PARAMS)
 
         self.gui.begin_window(0,0,0,0,"DEBUG",3,450)
 
-        render_gui_agents(self.gui, self.agent_objects, draw_path=True, draw_task_target=True)
+        render_gui_agents(self.gui, self.agent_objects, NAVMESH_PREVIEW_RENDER_PARAMS["draw_path"], NAVMESH_PREVIEW_RENDER_PARAMS["draw_task_target"])
         render_gui_crop_field(self.gui, self.scene.crop_field)
 
         self.gui.end_window()
@@ -49,6 +51,6 @@ class NavmeshPreview(Preview):
 
 if __name__ == "__main__":
 
-    editor = NavmeshPreview(CONFIG, "Navmesh Preview", 2, 60)
+    editor = NavmeshPreview("Navmesh Preview")
     editor.run()
 

@@ -4,7 +4,9 @@ import math
 from utilities.utils import Vec2f
 from rendering.render import render_gui_crop_field, render_gui_field, render_gui_stations, render_gui_spawning_area
 from preview.preview import Preview
-from utilities.configuration import CONFIG
+from utilities.configuration import EDITOR_PREVIEW_PARAMS
+EDITOR_PREVIEW_SIMULATION_PARAMS = EDITOR_PREVIEW_PARAMS["simulation"]
+EDITOR_PREVIEW_RENDER_PARAMS = EDITOR_PREVIEW_PARAMS["render"]
 
 def project_point_on_line_with_angle(p1: Vec2f, angle: float, p3: Vec2f):
     """
@@ -84,8 +86,8 @@ def angle_to_direction(angle_deg: float):
 
 
 class SceneEditorPreview(Preview):
-    def __init__(self, config, title="Preview", n_agents=0, fps=60):
-        super().__init__(config, title, n_agents, fps)
+    def __init__(self, title="Preview"):
+        super().__init__(EDITOR_PREVIEW_SIMULATION_PARAMS, title)
 
         # Dragging objects
         self.object_id = None
@@ -210,7 +212,7 @@ class SceneEditorPreview(Preview):
     
     def render(self):
         self.screen.fill((40,40,40))
-        self.scene.render_static(self.screen, self.camera, draw_navmesh=True)
+        self.scene.render_static(self.screen, self.camera, draw_navmesh=EDITOR_PREVIEW_RENDER_PARAMS["draw_navmesh"], draw_graph=EDITOR_PREVIEW_RENDER_PARAMS["draw_graph"])
         self.scene.render_dynamic(self.screen, self.camera, render_drag_points=True)
 
         self.gui.begin_window(0,0,0,0,"EDITOR",3,380)
@@ -237,6 +239,6 @@ class SceneEditorPreview(Preview):
 
 if __name__ == "__main__":
 
-    editor = SceneEditorPreview(CONFIG, "Scene Editor Preview", 0, 60)
+    editor = SceneEditorPreview("Scene Editor Preview")
     editor.run()
 

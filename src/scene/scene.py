@@ -88,7 +88,7 @@ class CropField:
                     position=pos,
                     required_scan_time=CROP_SCAN_TIME,
                     required_process_time=CROP_PROCESS_TIME,
-                    required_grow_time=3*3600
+                    required_grow_time=24*3600
                 )
             top_pos = top_pos.get_offset_position(row_spacing, angle)
 
@@ -96,9 +96,9 @@ class CropField:
         self.obstacles = []
         obstacle_width = 0.08
         height_offset = 0.2
-        pos1 =  left_top_pos.get_offset_position(row_spacing/2, angle)
+        pos1 =  left_top_pos.get_offset_position(-row_spacing/2, angle)
         pos1 = pos1.get_offset_position(-height_offset, angle+90)
-        for i in range(n_rows):
+        for i in range(n_rows+1):
             pos2 = pos1.get_offset_position(row_length+2*height_offset, angle+90)
             p1 = pos1.get_offset_position(-obstacle_width/2, angle)
             p2 = pos1.get_offset_position( obstacle_width/2, angle)
@@ -269,9 +269,10 @@ class Scene:
     Attributes:
         config (dict): Dictionary that has data for scene configurement
     """
-    def __init__(self, config: dict=None):
+    def __init__(self, start_date_time:str, config: dict=None):
         
         super().__init__()
+        self.start_date_time = start_date_time
         self.config_file_path = "config.json"
         
         self.loader = ConfigLoader(self.config_file_path, config)
@@ -283,7 +284,7 @@ class Scene:
         self.reset()
 
     def reset(self):
-        self.date_time_manager = DateTimeManager()
+        self.date_time_manager = DateTimeManager(self.start_date_time)
         # Init spawning area
         self.calculate_spawning_area()
         # Init lines
@@ -297,7 +298,7 @@ class Scene:
         for obs in self.crop_field.padded_obstacles:
             obstacles.append([(p.x,p.y) for p in obs])
         #obstacles = [(p.x, p.y) for obs in self.crop_field.obstacles for p in obs
-        self.navmesh = NavMesh([(0,0),(9,0),(9,7),(0,7)], obstacles=obstacles)
+        self.navmesh = NavMesh([(0,0),(20,0),(20,15),(0,15)], obstacles=obstacles)
         self.draggable_objects = {key: value for key, value in self.draggable_objects.items() if "field" not in key}
         self.draggable_objects.update(self.crop_field.reset(self.config["field"]))
 

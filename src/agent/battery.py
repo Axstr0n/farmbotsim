@@ -33,7 +33,7 @@ class Battery():
     def discharge(self, power_w: float, time_s: int):
         if self.energy_wh <= 0:
             return  # Battery is empty
-        # TO DO # implement from data points
+        # discharge stays linear
         energy_removed_wh = (power_w * time_s) / 3600  # Convert W to Wh
         self.energy_wh = max(0, self.energy_wh - energy_removed_wh)
         self.soc = (self.energy_wh / self.capacity_wh) * 100  # Update SoC

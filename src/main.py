@@ -17,9 +17,7 @@ if __name__ == "__main__":
 
     env = ContinuousMARLEnv(
         screen_size = (1200,600),
-        n_agents=4,
-        task_manager=TaskManager1(),
-        config=CONFIG
+        task_manager=TaskManager1()
     )
     
     # test_api(env, 1000)
@@ -49,7 +47,7 @@ if __name__ == "__main__":
             
             # Step the environment
             next_observations, rewards, terminations, truncations, infos = env.step(actions)
-            if render_env and env.step_count%1==0: env.render() # render every n simulation frames
+            if render_env and env.step_count%100==0: env.render() # render every n simulation frames
             #if env.step_count%300==0: input("Enter")
             
             # Accumulate rewards

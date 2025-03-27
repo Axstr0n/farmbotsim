@@ -7,8 +7,8 @@ class Camera:
     def __init__(self):
         self.zoom_level = 70.0            # Start zoom level
         self.zoom_factor = 1.1            # Zoom factor
-        self.min_zoom = 40                # Minimum zoom level
-        self.max_zoom = 150.0             # Maximum zoom level
+        self.min_zoom = 30                # Minimum zoom level
+        self.max_zoom = 200.0             # Maximum zoom level
         self.offset = Vec2f(0,0)          # Offset to track view changes
         self.dragging = False             # Flag to track if the middle mouse button is held down
         self.last_zoom_level = self.zoom_level

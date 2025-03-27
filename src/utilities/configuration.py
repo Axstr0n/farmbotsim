@@ -53,3 +53,65 @@ CONFIG = {
 }
 
 FONT_PATH = "../assets/fonts/dejavu-sans-mono/DejaVuSansMono.ttf"
+
+
+BASE_PARAMS = {
+    "simulation": {
+        "simulation_step": 1,
+        "n_agents": 3,
+        "fps": 60,
+        "date_time": "01.03.2025 00:00:00",
+        "scene_config": CONFIG
+    },
+    "render": {
+        "draw_step_count": True,
+        "draw_date_time": True,
+        "draw_navmesh": True,
+        "draw_graph": True,
+        "draw_fps": True,
+        "draw_stats": True,
+        "draw_agent_stats": True,
+        "draw_path": True,
+        "draw_task_target":True,
+        "draw_station_stats": True,
+        "draw_row_stats": True,
+        "draw_tasks": True,
+    }
+}
+
+from copy import deepcopy
+def get_params(overrides=None):
+    """Returns a deep copy of BASE_PARAMS with optional overrides."""
+    params = deepcopy(BASE_PARAMS)
+    if overrides:
+        for key, value in overrides.items():
+            keys = key.split(".")  # Support nested keys like "render.draw_graph"
+            d = params
+            for k in keys[:-1]:
+                d = d[k]  # Traverse nested dictionaries
+            d[keys[-1]] = value  # Set the final key to new value
+    return params
+
+ENV_PARAMS = get_params({
+    "simulation.n_agents": 4,
+    "render.draw_navmesh": False,
+    "render.draw_graph": False,
+    "render.draw_fps": False,
+    "render.draw_path": False,
+    "render.draw_task_target": False
+})
+EDITOR_PREVIEW_PARAMS = get_params({
+    "simulation.n_agents": 0,
+    "render.draw_graph": False
+})
+NAVMESH_PREVIEW_PARAMS = get_params({
+    "simulation.n_agents": 2,
+    "render.draw_graph": False,
+    "render-draw_task_target": False
+})
+TASK_PREVIEW_PARAMS = get_params({
+    "simulation.n_agents": 4,
+    "render.draw_navmesh": False,
+    "render.draw_graph": False,
+    "render.draw_path": False,
+})

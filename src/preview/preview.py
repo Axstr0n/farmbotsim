@@ -10,7 +10,7 @@ from utilities.configuration import FONT_PATH
 
 
 class Preview(ABC):
-    def __init__(self, config, title="Preview", n_agents=0, fps=60):
+    def __init__(self, SIMULATION_PARAMS, title="Preview"):
         pygame.init()
         self.SIZE = (1000,600)
         self.screen = pygame.display.set_mode(self.SIZE)
@@ -19,19 +19,21 @@ class Preview(ABC):
         self.static_surface = pygame.Surface(self.SIZE)
         self.dynamic_surface = pygame.Surface(self.SIZE, pygame.SRCALPHA)
 
-        font = pygame.font.Font(FONT_PATH, 12)
-        self.gui = GUI(self.screen, font)
+        self.font = pygame.font.Font(FONT_PATH, 12)
+        self.gui = GUI(self.screen, self.font)
+
+        self.simulation_step = SIMULATION_PARAMS["simulation_step"]
 
         self.clock = pygame.time.Clock()
-        self.fps = fps
+        self.fps = SIMULATION_PARAMS["fps"]
         self.camera = Camera()
 
-        self.scene = Scene(config)
+        self.scene = Scene(start_date_time=SIMULATION_PARAMS["date_time"], config=SIMULATION_PARAMS["scene_config"])
         self.config = self.scene.config
 
         self.step_count = 0
 
-        self.agents, self.agent_objects = init_agents(n_agents, self.config["spawning_area"], self.scene.navmesh)
+        self.agents, self.agent_objects = init_agents(SIMULATION_PARAMS["n_agents"], self.config["spawning_area"], self.scene.navmesh)
 
     def handle_events(self):
         events = pygame.event.get()  # Get events once
@@ -42,23 +44,23 @@ class Preview(ABC):
             self.gui.handle_event(event)
         return events
     
-    def update(self, simulation_step):
-        self.scene.crop_field.update(simulation_step)
+    def update(self):
+        self.scene.update(self.simulation_step)
         for agent_id,agent in self.agent_objects.items():
-            agent.update(simulation_step, self.scene.date_time_manager)
+            agent.update(self.simulation_step, self.scene.date_time_manager)
             
-    def render(self):
+    def render(self, RENDER_PARAMS):
         BG = (40,40,40)
         if self.step_count<2 or self.camera.dragging or self.camera.zoom_level!=self.camera.last_zoom_level:
             self.static_surface.fill(BG)
-            self.scene.render_static(self.static_surface, self.camera)
+            self.scene.render_static(self.static_surface, self.camera, draw_navmesh=RENDER_PARAMS["draw_navmesh"], draw_graph=RENDER_PARAMS["draw_graph"])
         self.screen.fill(BG)
 
         self.dynamic_surface.fill((0, 0, 0, 0))
         self.scene.render_dynamic(self.dynamic_surface, self.camera)
-        font = pygame.font.Font(FONT_PATH, 12)
-        fps_text = font.render(f'FPS: {self.clock.get_fps():.2f}', True, (255, 255, 255))
-        self.dynamic_surface.blit(fps_text, (10, 10))
+        if RENDER_PARAMS["draw_fps"]:
+            fps_text = self.font.render(f'FPS: {self.clock.get_fps():.2f}', True, (255, 255, 255))
+            self.dynamic_surface.blit(fps_text, (10, 10))
 
         if len(self.agents)>0: render_agents(self.dynamic_surface, self.camera, self.agent_objects)
 
@@ -69,13 +71,12 @@ class Preview(ABC):
         """Main loop."""
         running = True
         while running:
-            simulation_step = 1
-            self.update(simulation_step)
+            self.update()
             self.render()
             running = self.handle_events()
             if self.fps == None: self.clock.tick()
             else: self.clock.tick(self.fps)
-            self.step_count += simulation_step
+            self.step_count += self.simulation_step
 
         pygame.quit()
 

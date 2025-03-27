@@ -206,6 +206,21 @@ def render_gui_agents(gui, agents, draw_path=False, draw_task_target=False):
     color = COLORS["text"]
     gui.add_text("")
     gui.add_text_with_color("Agents: ", color)
+    agent_id_len = 11
+    position_len = 12
+    direction_len = 9
+    state_len = 12
+    battery_len = 7
+    # tabel column headers
+    gui.add_text("  Agent_id".ljust(agent_id_len))
+    gui.same_line()
+    gui.add_text("Pos".ljust(position_len))
+    gui.same_line()
+    gui.add_text(" Dir".ljust(direction_len))
+    gui.same_line()
+    gui.add_text(" State".ljust(state_len))
+    gui.same_line()
+    gui.add_text(" Battery".ljust(battery_len))
 
     for i, agent_id in enumerate(agents):
         agent = agents[agent_id]
@@ -214,17 +229,15 @@ def render_gui_agents(gui, agents, draw_path=False, draw_task_target=False):
         b = f"{agent.battery.get_soc():.2f}%"
         gui.add_text_with_color("▮", agent.color if not isinstance(agent.state, DischargedState) else COLORS["agent_discharged"])
         gui.same_line()
-        gui.add_text(f" {str(agent_id).ljust(8)}")
+        gui.add_text(f" {str(agent_id).ljust(agent_id_len-3)}")
         gui.same_line()
-        gui.add_text(f" P:{p}")
+        gui.add_text(f" {str(p).ljust(position_len)}")
         gui.same_line()
-        gui.add_text(f" D:{f'{d.get_angle("deg"):.2f}°'.rjust(8)}")
+        gui.add_text(f" {f'{d.get_angle("deg"):.2f}° '.rjust(direction_len)}")
         gui.same_line()
-        gui.add_text(f" V:{f'{agent.velocity_l:.2f}'.rjust(5)}")
+        gui.add_text(f"{str(agent.state.__class__.__name__)[:-5].ljust(state_len)}")
         gui.same_line()
-        gui.add_text(f" {str(agent.state.__class__.__name__)[:-5].ljust(12)}")
-        gui.same_line()
-        gui.add_text(f" {b.ljust(6)}")
+        gui.add_text(f"{b.rjust(battery_len)}")
 
         if draw_path:
             path = [target for target in agent.path]

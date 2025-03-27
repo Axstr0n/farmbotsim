@@ -8,30 +8,32 @@ from task_management.task_manager import BaseTaskManager
 from scene.scene import Scene
 from rendering.gui import GUI
 from rendering.camera import Camera
-from utilities.configuration import FONT_PATH
+from utilities.configuration import FONT_PATH, ENV_PARAMS
+ENV_SIMULATION_PARAMS = ENV_PARAMS["simulation"]
+ENV_RENDER_PARAMS = ENV_PARAMS["render"]
 
 from utilities.create import init_agents
 from rendering.render import render_agents, render_gui_date_time, render_gui_agents, render_gui_stations, render_gui_crop_field, render_gui_tasks
 
 
 class ContinuousMARLEnv(ParallelEnv):
-    metadata = {'render.modes': ['human', 'rgb_array'], 'render_fps': 60}
+    metadata = {'render.modes': ['human', 'rgb_array'], 'render_fps': ENV_SIMULATION_PARAMS["fps"]}
 
     def __init__(self,
                  screen_size: tuple,
-                 n_agents: int,
-                 config: dict,
                  task_manager: BaseTaskManager):
         
         super().__init__()
-        self.scene = Scene(config)
+        self.scene = Scene(start_date_time=ENV_SIMULATION_PARAMS["date_time"], config=ENV_SIMULATION_PARAMS["scene_config"])
 
         self.task_manager = task_manager
         self.task_manager.navmesh = self.scene.navmesh
-        self.n_agents = n_agents
+        self.n_agents = ENV_SIMULATION_PARAMS["n_agents"]
+
+        self.simulation_step = ENV_SIMULATION_PARAMS["simulation_step"]
 
         # Define agents
-        self.possible_agents = [f"agent_{i}" for i in range(n_agents)]
+        self.possible_agents = [f"agent_{i}" for i in range(self.n_agents)]
         self.agent_name_mapping = dict(zip(self.possible_agents, list(range(self.n_agents))))
 
         # Pygame rendering setup
@@ -65,7 +67,7 @@ class ContinuousMARLEnv(ParallelEnv):
             self.agents = []
             return {}, {}, {}, {}, {}
         
-        self.step_count += 1
+        self.step_count += self.simulation_step
 
         # Initialize dicts
         rewards = {agent_id: 0 for agent_id in self.agents}
@@ -73,16 +75,15 @@ class ContinuousMARLEnv(ParallelEnv):
         truncations = {agent_id: False for agent_id in self.agents}
         infos = {agent_id: {} for agent_id in self.agents}
 
-        simulation_step = 1
         for agent_id, action in actions.items():
             agent = self.agent_objects[agent_id]
             rot_input, acc_input = action
             
             # Update agent state
-            agent.update(simulation_step, self.scene.date_time_manager) # simulation step - 1 second
+            agent.update(self.simulation_step, self.scene.date_time_manager) # simulation step - 1 second
         
         # Check if crop field is processed
-        self.scene.update(simulation_step)
+        self.scene.update(self.simulation_step)
         is_processed = self.scene.crop_field.is_processed()
         terminations = {agent_id: is_processed for agent_id in self.agents}
 
@@ -116,8 +117,8 @@ class ContinuousMARLEnv(ParallelEnv):
             self.dynamic_surface = pygame.Surface(self.screen_size, pygame.SRCALPHA)
             pygame.display.set_caption("Environment")
             self.clock = pygame.time.Clock()
-            font = pygame.font.Font(FONT_PATH, 12)
-            self.gui = GUI(self.screen, font)
+            self.font = pygame.font.Font(FONT_PATH, 12)
+            self.gui = GUI(self.screen, self.font)
 
         if mode == 'human':
             self.handle_events()
@@ -125,44 +126,42 @@ class ContinuousMARLEnv(ParallelEnv):
             BG = (40,40,40)
             if self.step_count<2 or self.camera.dragging or self.camera.zoom_level!=self.camera.last_zoom_level:
                 self.static_surface.fill(BG)
-                self.scene.render_static(self.static_surface, self.camera, draw_navmesh=True)
+                self.scene.render_static(self.static_surface, self.camera, draw_navmesh=ENV_RENDER_PARAMS["draw_navmesh"], draw_graph=ENV_RENDER_PARAMS["draw_graph"])
             self.screen.fill(BG)
 
             self.dynamic_surface.fill((0, 0, 0, 0))
             self.scene.render_dynamic(self.dynamic_surface, self.camera)
-            font = pygame.font.Font(FONT_PATH, 12)
-            fps_text = font.render(f'FPS: {self.clock.get_fps():.2f}', True, (255, 255, 255))
-            self.dynamic_surface.blit(fps_text, (10, 10))
+            if ENV_RENDER_PARAMS["draw_fps"]:
+                fps_text = self.font.render(f'FPS: {self.clock.get_fps():.2f}', True, (255, 255, 255))
+                self.dynamic_surface.blit(fps_text, (10, 10))
 
             render_agents(self.dynamic_surface, self.camera, self.agent_objects)
 
             self.screen.blit(self.static_surface, (0,0))
             self.screen.blit(self.dynamic_surface, (0,0))
 
-            draw_stats = True
-            draw_agent_stats = True
-            draw_station_stats = True
-            draw_row_stats = True
-            draw_tasks = True
             #region Draw stats
-            if draw_stats:
+            if ENV_RENDER_PARAMS["draw_stats"]:
 
                 self.gui.begin_window(0,0,0,0,"DEBUG",3,480)
 
-                self.gui.add_text("")
-                self.gui.add_text(f"Step: {self.step_count}")
-                render_gui_date_time(self.gui, self.scene.date_time_manager)
+                if ENV_RENDER_PARAMS["draw_step_count"]:
+                    self.gui.add_text("")
+                    self.gui.add_text(f"Step: {self.step_count}")
+                
+                if ENV_RENDER_PARAMS["draw_date_time"]:
+                    render_gui_date_time(self.gui, self.scene.date_time_manager)
 
-                if draw_agent_stats:
-                    render_gui_agents(self.gui, self.agent_objects, draw_task_target=True)
+                if ENV_RENDER_PARAMS["draw_agent_stats"]:
+                    render_gui_agents(self.gui, self.agent_objects, draw_path=ENV_RENDER_PARAMS["draw_path"], draw_task_target=ENV_RENDER_PARAMS["draw_task_target"])
 
-                if draw_station_stats:
+                if ENV_RENDER_PARAMS["draw_station_stats"]:
                     render_gui_stations(self.gui, self.scene.station_objects)
                         
-                if draw_row_stats:
+                if ENV_RENDER_PARAMS["draw_row_stats"]:
                     render_gui_crop_field(self.gui, self.scene.crop_field)
                         
-                if draw_tasks:
+                if ENV_RENDER_PARAMS["draw_tasks"]:
                     render_gui_tasks(self.gui, self.task_manager, self.n_agents)
 
                 self.gui.end_window()
