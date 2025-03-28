@@ -8,6 +8,7 @@ from utilities.states import CropState, CropRowState
 from utilities.utils import Vec2f, generate_colors
 from utilities.configuration import AGENT_RADIUS, CROP_RADIUS, CHARGING_STATION_WIDTH, CHARGING_STATION_HEIGHT
 
+BG_COLOR = (40,40,40)
 color_default = (255,255,255)
 color_negative = (0,0,0)
 color_red = (158, 8, 8)
@@ -91,7 +92,6 @@ def render_graph(screen:pygame.surface, camera:Camera, navmesh):
     for node in navmesh.graph.nodes():
         p = navmesh.polygons[node].center
         pygame.draw.circle(screen, COLORS["graph"], camera.scene_to_screen_pos((p.x,p.y)), node_radius)
-
 
 def render_coordinate_system(screen:pygame.surface, camera:Camera, font:pygame.font):
     def draw_arrow(screen, start, end, color, width=2, arrow_size=10):
@@ -199,13 +199,15 @@ def render_mouse_scene_pos(screen:pygame.surface, camera:Camera, font:pygame.fon
     scene_pos_render = font.render(f"Scene pos: {scene_pos}", True, COLORS["text"])
     screen.blit(scene_pos_render, (0, screen_height-1*scene_pos_render.get_height()))
 
+def render_fps(screen:pygame.surface, camera:Camera, clock, font:pygame.font):
+    fps_text = font.render(f'FPS: {clock.get_fps():.2f}', True, (255, 255, 255))
+    screen.blit(fps_text, (10, 10))
+
 
 #----- GUI -----#
 
-def render_gui_agents(gui, agents, draw_path=False, draw_task_target=False):
-    color = COLORS["text"]
+def render_gui_agents(gui, agents):
     gui.add_text("")
-    gui.add_text_with_color("Agents: ", color)
     agent_id_len = 11
     position_len = 12
     direction_len = 9
@@ -239,15 +241,7 @@ def render_gui_agents(gui, agents, draw_path=False, draw_task_target=False):
         gui.same_line()
         gui.add_text(f"{b.rjust(battery_len)}")
 
-        if draw_path:
-            path = [target for target in agent.path]
-            p = [f'{position}' for position in path]
-            gui.add_text(str(p))
-        if draw_task_target:
-            gui.add_text("Task target: "+ str(agent.task.target_id if agent.task!=None else None))
-            gui.add_text(f"{agent.task}")
-
-def render_gui_field(gui, config):
+def render_gui_field_params(gui, config):
     gui.add_text("")
     gui.add_text("Field: ")
     gui.add_text(f"▮ Left top position: {config["left_top_pos"]}")
@@ -282,7 +276,7 @@ def render_gui_stations(gui, stations):
         gui.same_line()
         gui.add_text(s_queue)
 
-def render_gui_spawning_area(gui, config):
+def render_gui_spawning_area_params(gui, config):
     gui.add_text("")
     gui.add_text("Spawning area: ")
     gui.add_text(f"▮ Left top position: {config["left_top_pos"]}")
@@ -342,3 +336,7 @@ def render_gui_tasks(gui, task_manager, n_agents):
 def render_gui_date_time(gui, date_time_manager):
     gui.add_text("")
     gui.add_text(f"Date_time: {date_time_manager.get_time()}")
+
+def render_gui_step_count(gui, step_count):
+    gui.add_text("")
+    gui.add_text(f"Step: {step_count}")

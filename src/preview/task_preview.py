@@ -1,18 +1,11 @@
-import pygame
-
 from utilities.utils import Vec2f, Target
 from task_management.task_manager import Task, TaskManager1
 from preview.preview import Preview
 from utilities.configuration import TASK_PREVIEW_PARAMS
-TASK_PREVIEW_SIMULATION_PARAMS = TASK_PREVIEW_PARAMS["simulation"]
-TASK_PREVIEW_RENDER_PARAMS = TASK_PREVIEW_PARAMS["render"]
-
-from rendering.render import render_gui_agents, render_gui_crop_field, render_gui_stations
-
 
 class TaskPreview(Preview):
     def __init__(self, title="Preview"):
-        super().__init__(TASK_PREVIEW_SIMULATION_PARAMS, title)
+        super().__init__(TASK_PREVIEW_PARAMS, title)
         self.task_manager = TaskManager1()
 
     def handle_events(self):
@@ -20,13 +13,8 @@ class TaskPreview(Preview):
         if events is False:  # Quit condition
             return False
         return True
-      
-    def render(self):
 
-        super().render(TASK_PREVIEW_RENDER_PARAMS)
-
-        self.gui.begin_window(0,0,0,0,"DEBUG",3,450)
-
+    def render_extra_gui(self):
         if self.gui.add_button("Go to station 0"):
             self.assign_task("station_0")
 
@@ -39,16 +27,6 @@ class TaskPreview(Preview):
             self.assign_task("spawn")
         if self.gui.add_button("Go to crop_2_1"):
             self.assign_task("crop_2_1")
-
-        render_gui_agents(self.gui, self.agent_objects, draw_path=TASK_PREVIEW_RENDER_PARAMS["draw_path"], draw_task_target=TASK_PREVIEW_RENDER_PARAMS["draw_task_target"])
-        render_gui_stations(self.gui, self.scene.station_objects)
-        render_gui_crop_field(self.gui, self.scene.crop_field)
-
-        self.gui.end_window()
-        self.gui.windows[0].active = True # Set only window to active
-        self.gui.draw()
-
-        pygame.display.flip()
 
     def assign_task(self, target_id, index=-1):
         def task_crop(crop_id):
@@ -107,7 +85,6 @@ class TaskPreview(Preview):
             agent = self.agent_objects[agent_id]
             update_agent(agent)
                 
-
 
 if __name__ == "__main__":
 

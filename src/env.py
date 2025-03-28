@@ -11,9 +11,23 @@ from rendering.camera import Camera
 from utilities.configuration import FONT_PATH, ENV_PARAMS
 ENV_SIMULATION_PARAMS = ENV_PARAMS["simulation"]
 ENV_RENDER_PARAMS = ENV_PARAMS["render"]
+ENV_RENDER_GUI_PARAMS = ENV_PARAMS["render"]["gui"]
 
 from utilities.create import init_agents
-from rendering.render import render_agents, render_gui_date_time, render_gui_agents, render_gui_stations, render_gui_crop_field, render_gui_tasks
+from rendering.render import (
+    BG_COLOR,
+    render_agents,
+    render_fps,
+    render_mouse_scene_pos,
+    render_gui_step_count,
+    render_gui_date_time,
+    render_gui_field_params,
+    render_gui_spawning_area_params,
+    render_gui_agents,
+    render_gui_stations,
+    render_gui_crop_field,
+    render_gui_tasks
+)
 
 
 class ContinuousMARLEnv(ParallelEnv):
@@ -123,46 +137,35 @@ class ContinuousMARLEnv(ParallelEnv):
         if mode == 'human':
             self.handle_events()
 
-            BG = (40,40,40)
-            if self.step_count<2 or self.camera.dragging or self.camera.zoom_level!=self.camera.last_zoom_level:
-                self.static_surface.fill(BG)
-                self.scene.render_static(self.static_surface, self.camera, draw_navmesh=ENV_RENDER_PARAMS["draw_navmesh"], draw_graph=ENV_RENDER_PARAMS["draw_graph"])
-            self.screen.fill(BG)
-
+            self.screen.fill(BG_COLOR)
             self.dynamic_surface.fill((0, 0, 0, 0))
-            self.scene.render_dynamic(self.dynamic_surface, self.camera)
-            if ENV_RENDER_PARAMS["draw_fps"]:
-                fps_text = self.font.render(f'FPS: {self.clock.get_fps():.2f}', True, (255, 255, 255))
-                self.dynamic_surface.blit(fps_text, (10, 10))
 
-            render_agents(self.dynamic_surface, self.camera, self.agent_objects)
+            if self.step_count<2 or self.camera.dragging or self.camera.zoom_level!=self.camera.last_zoom_level:
+                self.static_surface.fill(BG_COLOR)
+                self.scene.render_static(self.static_surface, self.camera, params=ENV_RENDER_PARAMS["scene"], font=self.font)
+
+            self.scene.render_dynamic(self.dynamic_surface, self.camera, params=ENV_RENDER_PARAMS["scene"])
+            
+            if ENV_RENDER_PARAMS["scene"]["agents"]: render_agents(self.dynamic_surface, self.camera, self.agent_objects)
+            if ENV_RENDER_PARAMS["scene"]["fps"]: render_fps(self.dynamic_surface, self.camera, self.clock, self.font)
+            if ENV_RENDER_PARAMS["scene"]["mouse_scene_pos"]: render_mouse_scene_pos(self.dynamic_surface, self.camera, self.font)
 
             self.screen.blit(self.static_surface, (0,0))
             self.screen.blit(self.dynamic_surface, (0,0))
 
             #region Draw stats
-            if ENV_RENDER_PARAMS["draw_stats"]:
+            if ENV_RENDER_GUI_PARAMS["draw"]:
 
                 self.gui.begin_window(0,0,0,0,"DEBUG",3,480)
 
-                if ENV_RENDER_PARAMS["draw_step_count"]:
-                    self.gui.add_text("")
-                    self.gui.add_text(f"Step: {self.step_count}")
-                
-                if ENV_RENDER_PARAMS["draw_date_time"]:
-                    render_gui_date_time(self.gui, self.scene.date_time_manager)
-
-                if ENV_RENDER_PARAMS["draw_agent_stats"]:
-                    render_gui_agents(self.gui, self.agent_objects, draw_path=ENV_RENDER_PARAMS["draw_path"], draw_task_target=ENV_RENDER_PARAMS["draw_task_target"])
-
-                if ENV_RENDER_PARAMS["draw_station_stats"]:
-                    render_gui_stations(self.gui, self.scene.station_objects)
-                        
-                if ENV_RENDER_PARAMS["draw_row_stats"]:
-                    render_gui_crop_field(self.gui, self.scene.crop_field)
-                        
-                if ENV_RENDER_PARAMS["draw_tasks"]:
-                    render_gui_tasks(self.gui, self.task_manager, self.n_agents)
+                if ENV_RENDER_GUI_PARAMS["step_count"]: render_gui_step_count(self.gui, self.step_count)
+                if ENV_RENDER_GUI_PARAMS["date_time"]: render_gui_date_time(self.gui, self.scene.date_time_manager)
+                if ENV_RENDER_GUI_PARAMS["field_params"]: render_gui_field_params(self.gui, ENV_SIMULATION_PARAMS["scene_config"]["field"])
+                if ENV_RENDER_GUI_PARAMS["spawning_area_params"]: render_gui_spawning_area_params(self.gui, ENV_SIMULATION_PARAMS["scene_config"]["spawning_area"])
+                if ENV_RENDER_GUI_PARAMS["agent_stats"]: render_gui_agents(self.gui, self.agent_objects)
+                if ENV_RENDER_GUI_PARAMS["station_stats"]: render_gui_stations(self.gui, self.scene.station_objects)
+                if ENV_RENDER_GUI_PARAMS["crop_field_stats"]: render_gui_crop_field(self.gui, self.scene.crop_field)
+                if ENV_RENDER_GUI_PARAMS["tasks"]: render_gui_tasks(self.gui, self.task_manager, self.n_agents)
 
                 self.gui.end_window()
                 self.gui.windows[0].active = True # Set only window to active

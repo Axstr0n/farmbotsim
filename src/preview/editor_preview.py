@@ -2,11 +2,8 @@ import pygame
 import math
 
 from utilities.utils import Vec2f
-from rendering.render import render_gui_crop_field, render_gui_field, render_gui_stations, render_gui_spawning_area
 from preview.preview import Preview
 from utilities.configuration import EDITOR_PREVIEW_PARAMS
-EDITOR_PREVIEW_SIMULATION_PARAMS = EDITOR_PREVIEW_PARAMS["simulation"]
-EDITOR_PREVIEW_RENDER_PARAMS = EDITOR_PREVIEW_PARAMS["render"]
 
 def project_point_on_line_with_angle(p1: Vec2f, angle: float, p3: Vec2f):
     """
@@ -87,7 +84,7 @@ def angle_to_direction(angle_deg: float):
 
 class SceneEditorPreview(Preview):
     def __init__(self, title="Preview"):
-        super().__init__(EDITOR_PREVIEW_SIMULATION_PARAMS, title)
+        super().__init__(EDITOR_PREVIEW_PARAMS, title)
 
         # Dragging objects
         self.object_id = None
@@ -210,13 +207,7 @@ class SceneEditorPreview(Preview):
 
         return True
     
-    def render(self):
-        self.screen.fill((40,40,40))
-        self.scene.render_static(self.screen, self.camera, draw_navmesh=EDITOR_PREVIEW_RENDER_PARAMS["draw_navmesh"], draw_graph=EDITOR_PREVIEW_RENDER_PARAMS["draw_graph"])
-        self.scene.render_dynamic(self.screen, self.camera, render_drag_points=True)
-
-        self.gui.begin_window(0,0,0,0,"EDITOR",3,380)
-
+    def render_extra_gui(self):
         self.gui.add_text("")
         self.gui.add_text("S - Spawn station")
         self.gui.add_text("R - Remove station")
@@ -225,16 +216,8 @@ class SceneEditorPreview(Preview):
         if self.gui.add_button("Save scene config"):
             self.scene.save_config()
 
-        render_gui_field(self.gui, self.scene.config["field"])
-        render_gui_stations(self.gui, self.scene.station_objects)
-        render_gui_spawning_area(self.gui, self.scene.config["spawning_area"])
-        render_gui_crop_field(self.gui, self.scene.crop_field)
-
-        self.gui.end_window()
-        self.gui.windows[0].active = True # Set window to active
-        self.gui.draw()
-
-        pygame.display.flip()
+    def render(self):
+        super().render(always_draw=True)
 
 
 if __name__ == "__main__":

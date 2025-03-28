@@ -1,7 +1,9 @@
+import time
 
-from utilities.configuration import CONFIG
 from env import ContinuousMARLEnv
 from task_management.task_manager import TaskManager1
+from utilities.configuration import ENV_PARAMS
+ENV_RENDER_INTERVAL = ENV_PARAMS["simulation"]["render_interval"]
 
 
 def test_api(env, n):
@@ -23,9 +25,10 @@ if __name__ == "__main__":
     # test_api(env, 1000)
     # env.reset()
 
-    render_env = True
+    render_env = False if ENV_RENDER_INTERVAL==0 else True
     
     n_episodes = 10
+    start_time = time.time()
     for episode in range(n_episodes):
         print(f"Episode {episode+1}/{n_episodes}")
         observations, _ = env.reset()
@@ -47,7 +50,7 @@ if __name__ == "__main__":
             
             # Step the environment
             next_observations, rewards, terminations, truncations, infos = env.step(actions)
-            if render_env and env.step_count%100==0: env.render() # render every n simulation frames
+            if render_env and env.step_count%ENV_RENDER_INTERVAL==0: env.render() # render every n simulation frames
             #if env.step_count%300==0: input("Enter")
             
             # Accumulate rewards
@@ -57,4 +60,5 @@ if __name__ == "__main__":
 
             observations = next_observations
 
-        print(f"Finished episode {episode+1}")
+        print(f"Finished episode {episode+1} {time.time()-start_time}")
+        start_time = time.time()

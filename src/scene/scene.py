@@ -1,6 +1,5 @@
 import pygame
 from collections import deque
-import numpy as np
 import math
 import os
 import json
@@ -11,9 +10,18 @@ from rendering.camera import Camera
 from path_planning.navmesh import NavMesh
 from utilities.states import CropState, CropRowState
 from utilities.date_time_manager import DateTimeManager
-from utilities.configuration import CROP_SCAN_TIME, CROP_PROCESS_TIME, FONT_PATH, CHARGING_STATION_WAITING_OFFSET
+from utilities.configuration import CROP_SCAN_TIME, CROP_PROCESS_TIME, CHARGING_STATION_WAITING_OFFSET
 
-from rendering.render import render_coordinate_system,render_navmesh,render_graph,render_crop_field,render_obstacles,render_charging_stations,render_spawning_area,render_draggable_points,render_mouse_scene_pos
+from rendering.render import (
+    render_navmesh,
+    render_graph,
+    render_coordinate_system,
+    render_spawning_area,
+    render_obstacles,
+    render_charging_stations,
+    render_crop_field,
+    render_draggable_points
+)
 
 class Crop:
     def __init__(self, id:str, position:Vec2f, required_scan_time:int, required_process_time:int, required_grow_time:int, state:CropState=CropState.UNPROCESSED):
@@ -346,26 +354,17 @@ class Scene:
         self.crop_field.update(simulation_step)
         self.date_time_manager.advance_time(simulation_step)
 
-    def render_static(self, static_surface:pygame.Surface, camera:Camera, draw_navmesh:bool=False, draw_graph=False):
-        font = pygame.font.Font(FONT_PATH, 10)
+    def render_static(self, static_surface:pygame.Surface, camera:Camera, params, font):
+        if params["navmesh"]: render_navmesh(static_surface, camera, self.navmesh)
+        if params["graph"]: render_graph(static_surface, camera, self.navmesh)
+        if params["coordinate_system"]: render_coordinate_system(static_surface, camera, font)
+        if params["spawning_area"]: render_spawning_area(static_surface, camera, self.config["spawning_area"])
+        if params["obstacles"]: render_obstacles(static_surface, camera, self.crop_field, draw_padded_obstacles=False)
+        if params["charging_stations"]: render_charging_stations(static_surface, camera, self.station_objects, font)
 
-        if draw_navmesh: render_navmesh(static_surface, camera, self.navmesh)
-        if draw_graph: render_graph(static_surface, camera, self.navmesh)
-
-        render_coordinate_system(static_surface, camera, font)
-
-        render_spawning_area(static_surface, camera, self.config["spawning_area"])
-        
-        render_obstacles(static_surface, camera, self.crop_field, draw_padded_obstacles=False)
-
-        render_charging_stations(static_surface, camera, self.station_objects, font)
-
-    def render_dynamic(self, dynamic_surface:pygame.Surface, camera:Camera, render_drag_points:bool=False):
-        render_crop_field(dynamic_surface, camera, self.crop_field)
-        if render_drag_points:
-            render_draggable_points(dynamic_surface, camera, self.draggable_objects)
-        font = pygame.font.Font(FONT_PATH, 10)
-        render_mouse_scene_pos(dynamic_surface, camera, font)
+    def render_dynamic(self, dynamic_surface:pygame.Surface, camera:Camera, params):
+        if params["crop_field"]: render_crop_field(dynamic_surface, camera, self.crop_field)
+        if params["drag_points"]: render_draggable_points(dynamic_surface, camera, self.draggable_objects)
 
     def get_object_at(self, mouse_pos, camera:Camera):
         mouse_pos = camera.screen_to_scene_pos(Vec2f(mouse_pos))

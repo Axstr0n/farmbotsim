@@ -60,22 +60,35 @@ BASE_PARAMS = {
         "simulation_step": 1,
         "n_agents": 3,
         "fps": 60,
-        "date_time": "01.03.2025 00:00:00",
+        "render_interval": 1,
+        "date_time": "01.01.2025 00:00:00",
         "scene_config": CONFIG
     },
     "render": {
-        "draw_step_count": True,
-        "draw_date_time": True,
-        "draw_navmesh": True,
-        "draw_graph": True,
-        "draw_fps": True,
-        "draw_stats": True,
-        "draw_agent_stats": True,
-        "draw_path": True,
-        "draw_task_target":True,
-        "draw_station_stats": True,
-        "draw_row_stats": True,
-        "draw_tasks": True,
+        "scene": {
+            "crop_field": True,
+            "coordinate_system": True,
+            "spawning_area": True,
+            "obstacles": True,
+            "charging_stations": True,
+            "agents": True,
+            "navmesh": False,
+            "graph": False,
+            "drag_points": False,
+            "mouse_scene_pos": True,
+            "fps": True,
+        },
+        "gui": {
+            "draw": True,
+            "step_count": True,
+            "date_time": True,
+            "field_params": False,
+            "spawning_area_params": False,
+            "agent_stats": True,
+            "station_stats": True,
+            "crop_field_stats": True,
+            "tasks": True,
+        }
     }
 }
 
@@ -93,25 +106,28 @@ def get_params(overrides=None):
     return params
 
 ENV_PARAMS = get_params({
+    "simulation.date_time": "01.03.2025 00:00:00",
     "simulation.n_agents": 4,
-    "render.draw_navmesh": False,
-    "render.draw_graph": False,
-    "render.draw_fps": False,
-    "render.draw_path": False,
-    "render.draw_task_target": False
+    "simulation.render_interval": 10,
 })
 EDITOR_PREVIEW_PARAMS = get_params({
     "simulation.n_agents": 0,
-    "render.draw_graph": False
+    "render.scene.drag_points": True,
+    "render.gui.step_count": False,
+    "render.gui.date_time": False,
+    "render.gui.field_params": True,
+    "render.gui.spawning_area_params": True,
+    "render.gui.agent_stats": False,
+    "render.gui.crop_field_stats": False,
+    "render.gui.tasks": False
 })
 NAVMESH_PREVIEW_PARAMS = get_params({
     "simulation.n_agents": 2,
-    "render.draw_graph": False,
-    "render-draw_task_target": False
+    "render.scene.navmesh": True,
+    "render.gui.station_stats": False,
+    "render.gui.crop_field_stats": False,
+    "render.gui.tasks": False
 })
 TASK_PREVIEW_PARAMS = get_params({
     "simulation.n_agents": 4,
-    "render.draw_navmesh": False,
-    "render.draw_graph": False,
-    "render.draw_path": False,
 })

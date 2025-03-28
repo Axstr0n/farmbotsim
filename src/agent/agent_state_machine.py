@@ -58,13 +58,14 @@ class TravelState(State):
         self.agent.update_path()
         if self.agent.has_task_and_at_location("station"):
             self.agent.change_state(ChargingState(self.agent))
-        elif self.agent.has_task_and_at_location("crop") and self.agent.task.object.state == CropState.UNPROCESSED:
-            self.agent.change_state(WorkScanState(self.agent))
-        elif self.agent.has_task_and_at_location("crop") and self.agent.task.object.state == CropState.SCANNED:
-            self.agent.change_state(WorkProcessState(self.agent))
-        elif self.agent.has_task_and_at_location("crop") and self.agent.task.object.state == CropState.PROCESSED:
-            self.agent.change_state(IdleState(self.agent))
-            self.agent.task = None
+        elif self.agent.has_task_and_at_location("crop"):
+            if self.agent.task.object.state == CropState.UNPROCESSED:
+                self.agent.change_state(WorkScanState(self.agent))
+            elif self.agent.task.object.state == CropState.SCANNED:
+                self.agent.change_state(WorkProcessState(self.agent))
+            elif self.agent.task.object.state == CropState.PROCESSED:
+                self.agent.change_state(IdleState(self.agent))
+                self.agent.task = None
         elif self.agent.task is not None and self.agent.has_reached_target():
             self.agent.change_state(IdleState(self.agent))
             #self.agent.task = None
@@ -81,6 +82,7 @@ class TravelState(State):
 class ChargingState(State):
     def on_enter(self):
         if DEBUG_PRINT_STATE_CHANGE: print(f"{self.agent.id} Entering Charging State")
+        self.agent.battery.start_index = {"jan":1, "jun":1}
     
     def update(self):
         super().update()
