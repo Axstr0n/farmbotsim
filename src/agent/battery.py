@@ -71,24 +71,20 @@ class Battery():
         """
         Given a list of (x, y) tuples, find the corresponding y for a given x using linear interpolation.
         """
-        if month_name == "jan":
-            # Find the two points surrounding the x value
-            for i in range(self.start_index["jan"], len(self.jan_min_data)):
-                x0, y0 = self.jan_min_data[i-1]
-                x1, y1 = self.jan_min_data[i]
-                
-                if x0 <= x <= x1:  # x is between x0 and x1
-                    self.start_index["jan"] = max(1, i-1)
-                    return self._linear_interpolate(x0, y0, x1, y1, x)
-        else:
-            # Find the two points surrounding the x value
-            for i in range(self.start_index["jun"], len(self.jun_max_data)):
-                x0, y0 = self.jun_max_data[i-1]
-                x1, y1 = self.jun_max_data[i]
-                
-                if x0 <= x <= x1:  # x is between x0 and x1
-                    self.start_index["jun"] = max(1, i-1)
-                    return self._linear_interpolate(x0, y0, x1, y1, x)
+        month_data = {
+            "jan": self.jan_min_data,
+            "jun": self.jun_max_data,
+        }
+        data = month_data[month_name]
+
+        # Find the two points surrounding the x value
+        for i in range(self.start_index[month_name], len(data)):
+            x0, y0 = data[i-1]
+            x1, y1 = data[i]
+            
+            if x0 <= x <= x1:  # x is between x0 and x1
+                self.start_index[month_name] = max(1, i-1)
+                return self._linear_interpolate(x0, y0, x1, y1, x)
         
         # If x is out of the bounds of the data points, return None or raise an error
         raise ValueError(f"No y for x: {x}")
@@ -97,25 +93,20 @@ class Battery():
         """
         Given a list of (x, y) tuples, find the corresponding x for a given y using linear interpolation.
         """
-        if month_name == "jan":
-            # Find the two points surrounding the y value
-            for i in range(self.start_index["jan"], len(self.jan_min_data)):
-                x0, y0 = self.jan_min_data[i-1]
-                x1, y1 = self.jan_min_data[i]
-                
-                if y0 <= y <= y1:  # y is between y0 and y1
-                    self.start_index["jan"] = max(1, i-1)
-                    return self._linear_interpolate(y0, x0, y1, x1, y)
+        month_data = {
+            "jan": self.jan_min_data,
+            "jun": self.jun_max_data,
+        }
+        data = month_data[month_name]
+        
+        # Find the two points surrounding the y value
+        for i in range(self.start_index[month_name], len(data)):
+            x0, y0 = data[i-1]
+            x1, y1 = data[i]
             
-        else:
-            # Find the two points surrounding the y value
-            for i in range(self.start_index["jun"], len(self.jun_max_data)):
-                x0, y0 = self.jun_max_data[i-1]
-                x1, y1 = self.jun_max_data[i]
-                
-                if y0 <= y <= y1:  # y is between y0 and y1
-                    self.start_index["jun"] = max(1, i-1)
-                    return self._linear_interpolate(y0, x0, y1, x1, y)
+            if y0 <= y <= y1:  # y is between y0 and y1
+                self.start_index[month_name] = max(1, i-1)
+                return self._linear_interpolate(y0, x0, y1, x1, y)
         
         # If y is out of the bounds of the data points, return None or raise an error
         raise ValueError(f"No x for y: {y}")

@@ -17,11 +17,11 @@ def init_agents(n_agents, spawning_area, navmesh=None):
         angle = spawning_area["angle"]
         x1, y1 = left_top
 
-        # Step 1: Generate a random point inside an unrotated rectangle
+        # Generate a random point inside an unrotated rectangle
         random_x = random.uniform(0, width)
         random_y = random.uniform(0, height)
 
-        # Step 2: Rotate this point around the top-left corner
+        # Rotate this point around the top-left corner
         angle_rad = math.radians(angle)  # Convert angle to radians
         rotated_x = x1 + (random_x * math.cos(angle_rad)) - (random_y * math.sin(angle_rad))
         rotated_y = y1 + (random_x * math.sin(angle_rad)) + (random_y * math.cos(angle_rad))
@@ -34,11 +34,12 @@ def init_agents(n_agents, spawning_area, navmesh=None):
         agent_id: Agent(
             id=agent_id,
             color=agent_colors[i],
-            position=get_random_point_in_rect(spawning_area),
+            #position=get_random_point_in_rect(spawning_area),
+            position=Vec2f(3,4),
             direction=Vec2f(1, 0).rotate(np.random.uniform(0, 2 * math.pi)),
             movement = RombaMovement(),
             #battery=StandardBattery(initial_soc=random.randint(50,70))
-            battery=Battery("../batteries/battery1", initial_soc=20),
+            battery=Battery("../batteries/battery1", initial_soc=100),
             navmesh=navmesh
         )
         for i,agent_id in enumerate(agents)

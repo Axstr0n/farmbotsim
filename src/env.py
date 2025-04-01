@@ -89,6 +89,7 @@ class ContinuousMARLEnv(ParallelEnv):
         truncations = {agent_id: False for agent_id in self.agents}
         infos = {agent_id: {} for agent_id in self.agents}
 
+        self.scene.update(self.simulation_step)
         for agent_id, action in actions.items():
             agent = self.agent_objects[agent_id]
             rot_input, acc_input = action
@@ -97,7 +98,6 @@ class ContinuousMARLEnv(ParallelEnv):
             agent.update(self.simulation_step, self.scene.date_time_manager) # simulation step - 1 second
         
         # Check if crop field is processed
-        self.scene.update(self.simulation_step)
         is_processed = self.scene.crop_field.is_processed()
         terminations = {agent_id: is_processed for agent_id in self.agents}
 

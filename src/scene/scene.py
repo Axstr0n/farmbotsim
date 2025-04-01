@@ -129,6 +129,7 @@ class CropField:
         return draggable_objects
     
     def update(self, simulation_step):
+        return
         """ Simulate growing on crops """
         for crop_id, crop in self.crops_dict.items():
             if crop.state == CropState.PROCESSED:
@@ -212,6 +213,7 @@ class ChargingStation:
         if agent in self.queue:
             self.queue.remove(agent)
         for i,agent in enumerate(self.queue):
+            agent.set_path()
             agent.task.target.position = self.get_waiting_position(i)
 
     def get_waiting_position(self, queue_index):

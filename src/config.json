@@ -22,31 +22,11 @@
     "charging_stations": [
         {
             "position": [
-                7.85,
-                1.68
-            ],
-            "queue_direction": [
-                -0.05,
-                1.0
-            ]
-        },
-        {
-            "position": [
-                8.57,
-                0.72
+                8.09,
+                2.6
             ],
             "queue_direction": [
                 0.01,
-                1.0
-            ]
-        },
-        {
-            "position": [
-                8.57,
-                4.25
-            ],
-            "queue_direction": [
-                0.05,
                 1.0
             ]
         }

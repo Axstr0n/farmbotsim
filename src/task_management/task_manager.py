@@ -15,11 +15,9 @@ class Task:
     Attributes:
         task_id (str): Unique id for task
         agent_id (str): Id of agent that has this task assigned
-        task_type (str): Type of task
         target_id (str): Id of target
         _object : class Crop or ChargingStation
         target (Target): Target
-        task_target (Target): Task target
         info (str): Random info if needed
     """
     def __init__(self, task_id: str, agent_id: str, target_id: str, _object, target: Target, info: str = ""):
@@ -35,9 +33,10 @@ class Task:
 
 
 class BaseTaskManager(ABC):
-    def __init__(self):
+    def __init__(self, strategy=0):
         self.task_id_counter = 0
         self.history = []
+        self.strategy = strategy
 
         self.navmesh = None
     
@@ -48,6 +47,7 @@ class BaseTaskManager(ABC):
     def assign_task(self, new_task: Task, agent: Agent, crop_field: CropField, stations:dict[str,ChargingStation]):
         if new_task is None: return False
 
+        # Unassign from previous task
         if agent.task is not None:
             if agent.task.target_id.startswith("station"):
                 agent.task.object.release_agent(agent)
@@ -56,20 +56,17 @@ class BaseTaskManager(ABC):
                 crop_field.rows_assign[row_id] = False
                 agent.task.object.quit_work()
                 crop_field.update_row_processing_status()
-        #     # Mark previous target as not assigned
-        #     self.mark_as(agent.task.target_id, False, crop_rows, stations)
 
         # Assigns task
         self.history.append(new_task)
         agent.on_task_assigned(new_task)
         self.task_id_counter += 1
 
+        # Assign to current task
         if agent.task.target_id.startswith("crop"):
             crop_id = new_task.target_id
             row_id = f'row_{crop_id.split("_")[1]}'
             crop_field.rows_assign[row_id] = agent.id
-        # # Mark current target as assigned
-        # self.mark_as(task.target_id, True, crop_rows, stations)
 
         return True
 
@@ -90,19 +87,17 @@ class BaseTaskManager(ABC):
             if isinstance(agent.state, DischargedState):
                 agent_ids_to_remove.append(agent_id)
                 if agent.task is None: continue
-                # # If agent has task - unassign target and task TO DO
                 target_id = agent.task.target_id
                 if "station" in target_id:
                     stations[target_id].release_agent(agent)
                 if "crop" in target_id:
-                    # crop_rows[target_id].is_assigned = False
                     row_id = f'row_{agent.task.target_id.split("_")[1]}'
                     crop_field.rows_assign[row_id] = False
                     agent.task.object.quit_work()
                     crop_field.update_row_processing_status()
                 agent.task = None
 
-            # Agent with full battery
+            # Agent with full battery that are charging
             elif agent.battery.get_soc() >= 100 and isinstance(agent.state, ChargingState):
                 station = stations[agent.task.target_id]
                 station.release_agent(agent)
@@ -113,16 +108,23 @@ class BaseTaskManager(ABC):
             # Agent travelling to station / waiting in queue
             elif agent.task is not None and "station" in agent.task.target_id:
                 agent_ids_to_remove.append(agent_id)
-
-            # Agent that are IDLE
-            # elif agent.state_machine.get_state() == AgentState.IDLE:
-            #     task = self.get_crop_task(agent, crop_field, obstacles)
-            #     self.assign_task(task, agent, crop_field, stations)
-            #     agent_ids_to_remove.append(agent_id)
         unassigned_agent_ids = list(filter(lambda item: item not in agent_ids_to_remove, unassigned_agent_ids))
 
-        return unassigned_agent_ids
-       
+        unassigned_agent_ids = self.charging_strategy(unassigned_agent_ids, agents, crop_field, obstacles, stations)
+
+        # If more agents are idle first assign task to agents with greater battery level
+        sorted_agent_ids = sorted(unassigned_agent_ids, key=lambda agent_id: agents[agent_id].battery.get_soc(), reverse=True)
+        for agent_id in sorted_agent_ids:
+            agent = agents[agent_id]
+            if isinstance(agent.state, IdleState):
+                task = self.get_crop_task(agent, crop_field, obstacles)
+                self.assign_task(task, agent, crop_field, stations)
+                agent_ids_to_remove.append(agent_id)
+    
+    @abstractmethod
+    def charging_strategy(self, unassigned_agent_ids, agents, crop_field, obstacles, stations):
+        pass
+
     def get_crop_task(self, agent:Agent, crop_field: CropField, obstacles:list):
         available_crops = crop_field.get_available_crops(agent.id)
         if len(available_crops) == 0: return self.get_idle_task(agent, obstacles)
@@ -183,6 +185,7 @@ class BaseTaskManager(ABC):
 
     @abstractmethod
     def choose_station(self, agent:Agent, stations:dict[str,ChargingStation], obstacles):
+        # Implement strategy on which station to send agent to
         pass
 
 
@@ -190,8 +193,7 @@ class TaskManager1(BaseTaskManager):
     def __init__(self):
         super().__init__()
     
-    def assign_tasks(self, agents, crop_field, obstacles, stations):
-        unassigned_agent_ids = super().assign_tasks(agents, crop_field, obstacles, stations)
+    def charging_strategy(self, unassigned_agent_ids, agents, crop_field, obstacles, stations):
 
         def option1(unassigned_agent_ids, agents, crop_field, obstacles, stations):
             """ If agent has less than critical battery level -> send him to station """
@@ -205,18 +207,7 @@ class TaskManager1(BaseTaskManager):
                     self.assign_task(task, agent, crop_field, stations)
                     agent_ids_to_remove.append(agent_id)
             unassigned_agent_ids = list(filter(lambda item: item not in agent_ids_to_remove, unassigned_agent_ids))
-        
-            sorted_agent_ids = sorted(unassigned_agent_ids, key=lambda agent_id: agents[agent_id].battery.get_soc(), reverse=True)
-            for agent_id in sorted_agent_ids:
-                agent = agents[agent_id]
-                # if agent.task is not None and agent.task.target_id.startswith("crop"):
-                #     if crop_field.crops_dict[agent.task.target_id].state != CropState.PROCESSED: continue
-                if isinstance(agent.state, IdleState):
-                    task = self.get_crop_task(agent, crop_field, obstacles)
-                    #if agent.task is not None and agent.task.target_id == task.target_id: continue
-                    self.assign_task(task, agent, crop_field, stations)
-                    agent_ids_to_remove.append(agent_id)
-
+            return unassigned_agent_ids
 
         def option2(unassigned_agent_ids, agents, crop_field, obstacles, stations):
             """ 
@@ -228,10 +219,9 @@ class TaskManager1(BaseTaskManager):
 
             n_of_all_charging_agents = 0
             for station_id,station in stations.items():
-                if station.charging_agent != None: n_of_all_charging_agents += 1
                 n_of_all_charging_agents += len(station.queue)
             # If not maximum number of charging agents and battery below threshold go charging
-            max_agents_charging = len(stations)
+            max_agents_charging = len(stations)+1
             agent_ids_to_remove = []
             for agent_id in unassigned_agent_ids:
                 agent = agents[agent_id]
@@ -250,9 +240,10 @@ class TaskManager1(BaseTaskManager):
                     self.assign_task(task, agent, crop_field, stations)
                     agent_ids_to_remove.append(agent_id)
             unassigned_agent_ids = list(filter(lambda item: item not in agent_ids_to_remove, unassigned_agent_ids))
-
+            return unassigned_agent_ids
         
-        option1(unassigned_agent_ids, agents, crop_field, obstacles, stations)
+        if self.strategy == 0: return option1(unassigned_agent_ids, agents, crop_field, obstacles, stations)
+        if self.strategy == 1: return option2(unassigned_agent_ids, agents, crop_field, obstacles, stations)
 
     def choose_station(self, agent, stations, obstacles):
         def option1(agent, stations, obstacles):

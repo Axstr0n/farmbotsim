@@ -53,6 +53,7 @@ COLORS = {
 def render_agents(screen:pygame.surface, camera:Camera, agents):
     for i, agent_id in enumerate(agents):
         agent = agents[agent_id]
+        if isinstance(agent.state, DischargedState): continue
         color = agent.color if not isinstance(agent.state, DischargedState) else COLORS["agent_discharged"]
         pos = camera.scene_to_screen_pos(agent.position)
         dir_end = camera.scene_to_screen_pos(agent.position + agent.direction*0.3)
@@ -240,6 +241,10 @@ def render_gui_agents(gui, agents):
         gui.add_text(f"{str(agent.state.__class__.__name__)[:-5].ljust(state_len)}")
         gui.same_line()
         gui.add_text(f"{b.rjust(battery_len)}")
+        # gui.same_line()
+        # path = [target for target in agent.path]
+        # p = [f'{position}' for position in path]
+        # gui.add_text(str(p))
 
 def render_gui_field_params(gui, config):
     gui.add_text("")
@@ -331,6 +336,10 @@ def render_gui_tasks(gui, task_manager, n_agents):
         gui.add_text(f" {task.agent_id.ljust(8)}")
         gui.same_line()
         gui.add_text(f" {task.target_id.ljust(10)}")
+        # gui.same_line()
+        # gui.add_text(f" {task.object.position}")
+        # gui.same_line()
+        # gui.add_text(f" {task.target.position}")
         printed_agents.append(task.agent_id)
 
 def render_gui_date_time(gui, date_time_manager):

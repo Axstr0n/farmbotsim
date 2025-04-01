@@ -47,8 +47,7 @@ CONFIG = {
         "crop_spacing": 0.3
     },
     "charging_stations": [
-        {"position": [1.00,2.00], "queue_direction": [0.00,1.0]},
-        {"position": [7.5,1.0], "queue_direction": [-0.00,1.0]}
+        {"position": [8.09,2.6], "queue_direction": [0.01,1.0]}
     ]
 }
 

@@ -12,7 +12,7 @@ class State(ABC):
     def on_enter(self):
         pass
     def update(self):
-        if self.agent.battery.get_soc() <= 0:
+        if self.agent.battery.get_soc() <= 6:
             self.agent.change_state(DischargedState(self.agent))
     def on_exit(self):
         pass
