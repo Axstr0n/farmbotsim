@@ -45,7 +45,7 @@ class Preview(ABC):
         self.fps = self.SIMULATION_PARAMS["fps"]
         self.camera = Camera()
 
-        self.scene = Scene(start_date_time=self.SIMULATION_PARAMS["date_time"], config=self.SIMULATION_PARAMS["scene_config"])
+        self.scene = Scene(start_date_time=self.SIMULATION_PARAMS["date_time"])
         self.config = self.scene.config
 
         self.step_count = 0
@@ -99,8 +99,8 @@ class Preview(ABC):
 
             if RENDER_GUI_PARAMS["step_count"]: render_gui_step_count(self.gui, self.step_count)
             if RENDER_GUI_PARAMS["date_time"]: render_gui_date_time(self.gui, self.scene.date_time_manager)
-            if RENDER_GUI_PARAMS["field_params"]: render_gui_field_params(self.gui, self.SIMULATION_PARAMS["scene_config"]["field"])
-            if RENDER_GUI_PARAMS["spawning_area_params"]: render_gui_spawning_area_params(self.gui, self.SIMULATION_PARAMS["scene_config"]["spawning_area"])
+            if RENDER_GUI_PARAMS["field_params"]: render_gui_field_params(self.gui, self.scene.config["field"])
+            if RENDER_GUI_PARAMS["spawning_area_params"]: render_gui_spawning_area_params(self.gui, self.scene.config["spawning_area"])
             if RENDER_GUI_PARAMS["agent_stats"]: render_gui_agents(self.gui, self.agent_objects)
             if RENDER_GUI_PARAMS["station_stats"]: render_gui_stations(self.gui, self.scene.station_objects)
             if RENDER_GUI_PARAMS["crop_field_stats"]: render_gui_crop_field(self.gui, self.scene.crop_field)

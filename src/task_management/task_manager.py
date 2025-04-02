@@ -221,7 +221,7 @@ class TaskManager1(BaseTaskManager):
             for station_id,station in stations.items():
                 n_of_all_charging_agents += len(station.queue)
             # If not maximum number of charging agents and battery below threshold go charging
-            max_agents_charging = len(stations)+1
+            max_agents_charging = len(stations)
             agent_ids_to_remove = []
             for agent_id in unassigned_agent_ids:
                 agent = agents[agent_id]

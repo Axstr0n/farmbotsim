@@ -226,17 +226,14 @@ class ChargingStation:
 
 
 class ConfigLoader:
-    def __init__(self, file_path, default_config):
+    def __init__(self, file_path):
         self.file_path = file_path
-        self.default_config = default_config
         self.config = None
 
     def load(self):
         # Check if the config file exists
         if not os.path.exists(self.file_path):
-            # If the file doesn't exist, use the default config and save it to the file
-            self.config = self._parse_json_with_vec2f(self.default_config)
-            self.save_config()
+            raise ValueError("Config doesn't exist")
         else:
             # If the file exists, load and process the config from the file
             with open(self.file_path, 'r') as file:
@@ -279,13 +276,13 @@ class Scene:
     Attributes:
         config (dict): Dictionary that has data for scene configurement
     """
-    def __init__(self, start_date_time:str, config: dict=None):
+    def __init__(self, start_date_time:str):
         
         super().__init__()
         self.start_date_time = start_date_time
         self.config_file_path = "config.json"
         
-        self.loader = ConfigLoader(self.config_file_path, config)
+        self.loader = ConfigLoader(self.config_file_path)
         self.loader.load()
         self.config = self.loader.get_config()
 

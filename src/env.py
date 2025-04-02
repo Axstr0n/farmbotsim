@@ -38,7 +38,7 @@ class ContinuousMARLEnv(ParallelEnv):
                  task_manager: BaseTaskManager):
         
         super().__init__()
-        self.scene = Scene(start_date_time=ENV_SIMULATION_PARAMS["date_time"], config=ENV_SIMULATION_PARAMS["scene_config"])
+        self.scene = Scene(start_date_time=ENV_SIMULATION_PARAMS["date_time"])
 
         self.task_manager = task_manager
         self.task_manager.navmesh = self.scene.navmesh

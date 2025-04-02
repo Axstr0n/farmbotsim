@@ -55,8 +55,8 @@ if __name__ == "__main__":
     
     n_episodes = 10
 
-    header_names = ['n_agents', 'strategy', 'time_avg', 'time_min', 'time_max']
-    col_widths = [10, 10, 10, 10, 10]  # Adjust based on expected content
+    header_names = ['n_agents', 'strategy', 'episodes', 'time_avg', 'time_min', 'time_max']
+    col_widths = [10, 10, 10, 10, 10, 10]  # Adjust based on expected content
     with open(OUTPUT_FILE, "w") as f:
         header = "|"
         for i,header_name in enumerate(header_names):
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
             steps = []
             for episode in range(n_episodes):
-                print(f"Episode {episode}/{n_episodes}")
+                print(f"Episode {episode+1}/{n_episodes} | n_agents: {n_agents}, strategy: {strategy}")
                 res = run_episode(env)
                 steps.append(res["steps"])
             
@@ -96,7 +96,7 @@ if __name__ == "__main__":
                 time_min = seconds_to_dhms(step_min)
                 time_max = seconds_to_dhms(step_max)
 
-                body_data = [n_agents, strategy, time_avg, time_min, time_max]
+                body_data = [n_agents, strategy, n_episodes, time_avg, time_min, time_max]
                 body = "|"
                 for i,body_name in enumerate(body_data):
                     body += f" {str(body_name).ljust(col_widths[i])} |"

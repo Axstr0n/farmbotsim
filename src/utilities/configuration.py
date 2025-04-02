@@ -31,26 +31,6 @@ BATTERY_DISCHARGE_STATE_WORK_SCAN = 100
 BATTERY_DISCHARGE_STATE_WORK_PROCESS = 400
 
 
-CONFIG = {
-    "spawning_area": {
-        "left_top_pos": [3,4],
-        "width": 4,
-        "height": 1,
-        "angle": 0.0
-    },
-    "field": {
-        "left_top_pos": [3,0.5],
-        "angle": 0.0,
-        "n_rows": 4,
-        "row_spacing": 0.5,
-        "n_crops_per_row": 3,
-        "crop_spacing": 0.3
-    },
-    "charging_stations": [
-        {"position": [8.09,2.6], "queue_direction": [0.01,1.0]}
-    ]
-}
-
 FONT_PATH = "../assets/fonts/dejavu-sans-mono/DejaVuSansMono.ttf"
 
 
@@ -61,7 +41,6 @@ BASE_PARAMS = {
         "fps": 60,
         "render_interval": 1,
         "date_time": "01.01.2025 00:00:00",
-        "scene_config": CONFIG
     },
     "render": {
         "scene": {

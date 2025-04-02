@@ -34,11 +34,11 @@ def init_agents(n_agents, spawning_area, navmesh=None):
         agent_id: Agent(
             id=agent_id,
             color=agent_colors[i],
-            #position=get_random_point_in_rect(spawning_area),
-            position=Vec2f(3,4),
+            position=get_random_point_in_rect(spawning_area),
+            #position=Vec2f(3,4),
             direction=Vec2f(1, 0).rotate(np.random.uniform(0, 2 * math.pi)),
             movement = RombaMovement(),
-            #battery=StandardBattery(initial_soc=random.randint(50,70))
+            #battery=Battery("../batteries/battery1", initial_soc=random.randint(50,70))
             battery=Battery("../batteries/battery1", initial_soc=100),
             navmesh=navmesh
         )

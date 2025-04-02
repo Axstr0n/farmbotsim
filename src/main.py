@@ -14,9 +14,7 @@ def test_api(env, n):
     env.reset()
     parallel_api_test(env, n)
 
-
-if __name__ == "__main__":
-
+def main():
     env = ContinuousMARLEnv(
         screen_size = (1200,600),
         task_manager=TaskManager1()
@@ -62,3 +60,7 @@ if __name__ == "__main__":
 
         print(f"Finished episode {episode+1} {time.time()-start_time}")
         start_time = time.time()
+
+
+if __name__ == "__main__":
+    main()
