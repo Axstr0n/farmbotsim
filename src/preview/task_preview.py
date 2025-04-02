@@ -7,6 +7,10 @@ class TaskPreview(Preview):
     def __init__(self, title="Preview"):
         super().__init__(TASK_PREVIEW_PARAMS, title)
         self.task_manager = TaskManager1()
+        self.task_manager.agents = self.agent_objects
+        self.task_manager.crop_field = self.scene.crop_field
+        self.task_manager.obstacles = self.scene.crop_field.padded_obstacles
+        self.task_manager.stations = self.scene.station_objects
 
     def handle_events(self):
         events = super().handle_events()
@@ -74,7 +78,7 @@ class TaskPreview(Preview):
                 task = task_crop(target_id)
             elif target_id == "spawn":
                 task = task_spawn(agent)
-            self.task_manager.assign_task(task, agent, self.scene.crop_field, self.scene.station_objects)
+            self.task_manager.assign_task(task, agent)
             
 
         if index == -1: # Assign for all agents

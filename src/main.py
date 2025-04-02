@@ -15,10 +15,7 @@ def test_api(env, n):
     parallel_api_test(env, n)
 
 def main():
-    env = ContinuousMARLEnv(
-        screen_size = (1200,600),
-        task_manager=TaskManager1()
-    )
+    env = ContinuousMARLEnv()
     
     # test_api(env, 1000)
     # env.reset()
@@ -26,6 +23,7 @@ def main():
     render_env = False if ENV_RENDER_INTERVAL==0 else True
     
     n_episodes = 10
+    times = []
     start_time = time.time()
     for episode in range(n_episodes):
         print(f"Episode {episode+1}/{n_episodes}")
@@ -36,12 +34,7 @@ def main():
 
         while not done:
             
-            env.task_manager.assign_tasks(
-                agents=env.agent_objects,
-                crop_field=env.scene.crop_field,
-                obstacles=env.scene.crop_field.padded_obstacles,
-                stations=env.scene.station_objects
-            )
+            env.task_manager.assign_tasks()
             # Get actions
             #actions = {agent: env.action_space(agent).sample() for agent in env.agents}
             actions = {agent: (1,1) for agent in env.agents}
@@ -54,12 +47,16 @@ def main():
             # Accumulate rewards
             total_reward += sum(rewards.values())
             done = all(terminations.values()) or all(truncations.values())
-            #done = done or env.step_count>100
 
             observations = next_observations
 
-        print(f"Finished episode {episode+1} {time.time()-start_time}")
-        start_time = time.time()
+        end_time = time.time()
+        duration = end_time-start_time
+        times.append(duration)
+        print(f"Finished episode {episode+1} {duration}")
+        start_time = end_time
+    
+    print(f"Avg time: {sum(times)/len(times)}")
 
 
 if __name__ == "__main__":

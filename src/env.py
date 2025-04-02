@@ -4,7 +4,7 @@ from pettingzoo import ParallelEnv
 from gymnasium import spaces
 import functools
 
-from task_management.task_manager import BaseTaskManager
+from task_management.task_manager import TaskManager1
 from scene.scene import Scene
 from rendering.gui import GUI
 from rendering.camera import Camera
@@ -33,16 +33,19 @@ from rendering.render import (
 class ContinuousMARLEnv(ParallelEnv):
     metadata = {'render.modes': ['human', 'rgb_array'], 'render_fps': ENV_SIMULATION_PARAMS["fps"]}
 
-    def __init__(self,
-                 screen_size: tuple,
-                 task_manager: BaseTaskManager):
+    def __init__(self):
         
         super().__init__()
         self.scene = Scene(start_date_time=ENV_SIMULATION_PARAMS["date_time"])
 
-        self.task_manager = task_manager
-        self.task_manager.navmesh = self.scene.navmesh
         self.n_agents = ENV_SIMULATION_PARAMS["n_agents"]
+        self.agents, self.agent_objects = init_agents(self.n_agents, self.scene.config["spawning_area"], self.scene.navmesh)
+
+        self.task_manager = TaskManager1()
+        self.task_manager.agents = self.agent_objects
+        self.task_manager.crop_field = self.scene.crop_field
+        self.task_manager.obstacles = self.scene.crop_field.padded_obstacles
+        self.task_manager.stations = self.scene.station_objects
 
         self.simulation_step = ENV_SIMULATION_PARAMS["simulation_step"]
 
@@ -54,17 +57,17 @@ class ContinuousMARLEnv(ParallelEnv):
         self.screen = None
         self.static_surface = None
         self.dynamic_surface = None
-        self.screen_size = screen_size
+        self.screen_size = (1200,600)
         self.clock = None
         self.camera = Camera()
 
     def reset(self, seed:int=None, options=None):
         # Reset the environment to initial state
         self.step_count = 0
-        self.scene.reset()
-        self.task_manager.reset()
 
         self.agents, self.agent_objects = init_agents(self.n_agents, self.scene.config["spawning_area"], self.scene.navmesh)
+        self.scene.reset()
+        self.task_manager.reset(self)
 
         self.rewards = {agent_id: 0 for agent_id in self.agents}
         self.terminations = {agent_id: False for agent_id in self.agents}

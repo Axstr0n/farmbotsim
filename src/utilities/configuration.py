@@ -86,7 +86,7 @@ def get_params(overrides=None):
 ENV_PARAMS = get_params({
     "simulation.date_time": "01.03.2025 00:00:00",
     "simulation.n_agents": 4,
-    "simulation.render_interval": 10,
+    "simulation.render_interval": 600,
 })
 EDITOR_PREVIEW_PARAMS = get_params({
     "simulation.n_agents": 0,

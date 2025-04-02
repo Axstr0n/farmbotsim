@@ -10,10 +10,7 @@ OUTPUT_FILE = "performance_matrix.txt"
 
 if __name__ == "__main__":
 
-    env = ContinuousMARLEnv(
-        screen_size = (1200,600),
-        task_manager=TaskManager1()
-    )
+    env = ContinuousMARLEnv()
 
     def run_episode(env):
         observations, _ = env.reset()
@@ -22,12 +19,7 @@ if __name__ == "__main__":
 
         while not done:
             
-            env.task_manager.assign_tasks(
-                agents=env.agent_objects,
-                crop_field=env.scene.crop_field,
-                obstacles=env.scene.crop_field.padded_obstacles,
-                stations=env.scene.station_objects
-            )
+            env.task_manager.assign_tasks()
             # Get actions
             actions = {agent: (1,1) for agent in env.agents}
             

@@ -26,7 +26,7 @@ class IdleState(State):
     def update(self):
         super().update()
         if self.agent.task is not None and not self.agent.has_reached_target():
-            self.agent.change_state(TravelState(self.agent))
+            self.agent.change_state(self.agent.travel_state)
 
     def on_exit(self):
         if DEBUG_PRINT_STATE_CHANGE: print(f"{self.agent.id} Exiting Idle State")
@@ -57,17 +57,17 @@ class TravelState(State):
         super().update()
         self.agent.update_path()
         if self.agent.has_task_and_at_location("station"):
-            self.agent.change_state(ChargingState(self.agent))
+            self.agent.change_state(self.agent.charging_state)
         elif self.agent.has_task_and_at_location("crop"):
             if self.agent.task.object.state == CropState.UNPROCESSED:
-                self.agent.change_state(WorkScanState(self.agent))
+                self.agent.change_state(self.agent.work_scan_state)
             elif self.agent.task.object.state == CropState.SCANNED:
-                self.agent.change_state(WorkProcessState(self.agent))
+                self.agent.change_state(self.agent.work_process_state)
             elif self.agent.task.object.state == CropState.PROCESSED:
-                self.agent.change_state(IdleState(self.agent))
+                self.agent.change_state(self.agent.idle_state)
                 self.agent.task = None
         elif self.agent.task is not None and self.agent.has_reached_target():
-            self.agent.change_state(IdleState(self.agent))
+            self.agent.change_state(self.agent.idle_state)
             #self.agent.task = None
 
     def on_exit(self):
@@ -87,7 +87,7 @@ class ChargingState(State):
     def update(self):
         super().update()
         if self.agent.task is not None and not self.agent.task.target_id.startswith("station"):
-            self.agent.change_state(TravelState(self.agent))
+            self.agent.change_state(self.agent.travel_state)
     
     def on_exit(self):
         if DEBUG_PRINT_STATE_CHANGE: print(f"{self.agent.id} Exiting Charging State")
@@ -103,9 +103,9 @@ class WorkScanState(State):
     def update(self):
         super().update()
         if self.agent.task is not None and not self.agent.task.target_id.startswith("crop"):
-            self.agent.change_state(TravelState(self.agent))
+            self.agent.change_state(self.agent.travel_state)
         elif self.agent.task.object.state == CropState.SCANNED:
-            self.agent.change_state(WorkProcessState(self.agent))
+            self.agent.change_state(self.agent.work_process_state)
         
         else: self.agent.task.object.process()
     
@@ -122,10 +122,10 @@ class WorkProcessState(State):
     def update(self):
         super().update()
         if self.agent.task is not None and not self.agent.task.target_id.startswith("crop"):
-            self.agent.change_state(TravelState(self.agent))
+            self.agent.change_state(self.agent.travel_state)
         elif self.agent.task.object.state == CropState.PROCESSED:
             #self.agent.task = None
-            self.agent.change_state(IdleState(self.agent))
+            self.agent.change_state(self.agent.idle_state)
         
         else: self.agent.task.object.process()
     

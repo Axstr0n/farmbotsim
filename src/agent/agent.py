@@ -3,7 +3,7 @@ from agent.movement import BaseMovement
 from agent.battery import Battery
 from utilities.utils import Vec2f
 from path_planning.navmesh import NavMesh
-from agent.agent_state_machine import State, IdleState, DischargedState
+from agent.agent_state_machine import State, IdleState, DischargedState, TravelState, ChargingState, WorkScanState, WorkProcessState
 
 from utilities.configuration import TOLERANCE_DISTANCE, TOLERANCE_ANGLE, MAX_FORWARD_VELOCITY
 
@@ -50,7 +50,15 @@ class Agent:
         self.path:list = []
         self.task = None
 
-        self.state = IdleState(self)  # Initial state
+        # Create states once
+        self.idle_state = IdleState(self)
+        self.travel_state = TravelState(self)
+        self.discharged_state = DischargedState(self)
+        self.charging_state = ChargingState(self)
+        self.work_scan_state = WorkScanState(self)
+        self.work_process_state = WorkProcessState(self) 
+
+        self.state = self.idle_state
         self.state.on_enter()
         self.state.update()
 
