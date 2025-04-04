@@ -33,6 +33,7 @@ BATTERY_DISCHARGE_STATE_WORK_PROCESS = 400
 
 FONT_PATH = "../assets/fonts/dejavu-sans-mono/DejaVuSansMono.ttf"
 
+CONFIG_FILE_PATH = "config.json"
 
 BASE_PARAMS = {
     "simulation": {
@@ -91,6 +92,7 @@ ENV_PARAMS = get_params({
 EDITOR_PREVIEW_PARAMS = get_params({
     "simulation.n_agents": 0,
     "render.scene.drag_points": True,
+    "render.scene.navmesh": True,
     "render.gui.step_count": False,
     "render.gui.date_time": False,
     "render.gui.field_params": True,

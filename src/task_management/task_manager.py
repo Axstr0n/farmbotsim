@@ -209,7 +209,7 @@ class TaskManager1(BaseTaskManager):
 
         def option2(unassigned_agent_ids):
             """ 
-            If agent has less than threshold battery level and maximum number of charging agents is not reached -> go charging
+            If agent has less than threshold battery level and maximum number of charging agents is reached -> don't go charging
             If agent has less than critical battery level -> send him to station
             """
             critical_battery_level = 45

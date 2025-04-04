@@ -10,7 +10,7 @@ from rendering.camera import Camera
 from path_planning.navmesh import NavMesh
 from utilities.states import CropState, CropRowState
 from utilities.date_time_manager import DateTimeManager
-from utilities.configuration import CROP_SCAN_TIME, CROP_PROCESS_TIME, CHARGING_STATION_WAITING_OFFSET
+from utilities.configuration import CROP_SCAN_TIME, CROP_PROCESS_TIME, CHARGING_STATION_WAITING_OFFSET, CONFIG_FILE_PATH
 
 from rendering.render import (
     render_navmesh,
@@ -280,7 +280,7 @@ class Scene:
         
         super().__init__()
         self.start_date_time = start_date_time
-        self.config_file_path = "config.json"
+        self.config_file_path = CONFIG_FILE_PATH
         
         self.loader = ConfigLoader(self.config_file_path)
         self.loader.load()
@@ -292,20 +292,18 @@ class Scene:
 
     def reset(self):
         self.date_time_manager = DateTimeManager(self.start_date_time)
-        # Init spawning area
-        self.calculate_spawning_area()
         # Init lines
         self.calculate_crop_field()
+        # Init spawning area
+        self.calculate_spawning_area()
         # Init charging stations
         self.calculate_stations()
 
+        self.calculate_navmesh()
+
     def calculate_crop_field(self):
         self.crop_field = CropField(self.config["field"])
-        obstacles = []
-        for obs in self.crop_field.padded_obstacles:
-            obstacles.append([(p.x,p.y) for p in obs])
-        #obstacles = [(p.x, p.y) for obs in self.crop_field.obstacles for p in obs
-        self.navmesh = NavMesh([(0,0),(20,0),(20,15),(0,15)], obstacles=obstacles)
+        
         self.draggable_objects = {key: value for key, value in self.draggable_objects.items() if "field" not in key}
         self.draggable_objects.update(self.crop_field.reset(self.config["field"]))
 
@@ -347,6 +345,22 @@ class Scene:
         self.draggable_objects["sa_width"] = top_right
         self.draggable_objects["sa_height"] = bot_left
         self.draggable_objects["sa_angle"] = bot_right
+
+    def calculate_navmesh(self):
+        left_top_pos = self.config["navmesh"]["left_top_pos"]
+        right_bot_pos = self.config["navmesh"]["right_bot_pos"]
+
+        corners = [left_top_pos.to_list(), (right_bot_pos.x, left_top_pos.y), right_bot_pos.to_list(), (left_top_pos.x,right_bot_pos.y)]
+
+        obstacles = []
+        for obs in self.crop_field.padded_obstacles:
+            obstacles.append([(p.x,p.y) for p in obs])
+
+        self.navmesh = NavMesh(corners, obstacles=obstacles)
+
+        # For editor
+        self.draggable_objects["navmesh_left_top_pos"] = left_top_pos
+        self.draggable_objects["navmesh_right_bot_pos"] = right_bot_pos
 
     def update(self, simulation_step):
         self.crop_field.update_row_processing_status()

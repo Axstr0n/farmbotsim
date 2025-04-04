@@ -118,7 +118,7 @@ class SceneEditorPreview(Preview):
                     self.object_id = self.scene.get_object_at((mouse_x, mouse_y), self.camera)
                     if self.object_id == None:
                         pass
-                    elif self.object_id.startswith(("station", "field", "sa")):
+                    elif self.object_id.startswith(("station", "field", "sa", "navmesh")):
                         self.is_dragging = True
                         obj_x, obj_y = self.scene.draggable_objects[self.object_id]
                         self.drag_offset = Vec2f(self.camera.screen_to_scene_val(mouse_x) - obj_x,
@@ -182,10 +182,10 @@ class SceneEditorPreview(Preview):
                         elif "field-crop_spacing" == self.object_id:
                             _,distance_ = project_point_on_line_with_angle(ltp, ang+90, new_p)
                             self.scene.config["field"]["crop_spacing"] = max(0.2, round(distance_,4))
-                        
                         self.scene.calculate_crop_field()
+                        self.scene.calculate_navmesh()
                     
-                    elif "sa" in self.object_id:
+                    elif self.object_id.startswith("sa"):
                         ltp = self.scene.config["spawning_area"]["left_top_pos"]
                         wid = self.scene.config["spawning_area"]["width"]
                         hei = self.scene.config["spawning_area"]["height"]
@@ -204,6 +204,13 @@ class SceneEditorPreview(Preview):
                             extra = math.degrees( math.atan2(hei, wid) )
                             self.scene.config["spawning_area"]["angle"] = round(angle - extra,2)
                         self.scene.calculate_spawning_area()
+
+                    elif self.object_id.startswith("navmesh"):
+                        if "navmesh_left_top_pos" == self.object_id:
+                            self.scene.config["navmesh"]["left_top_pos"] = new_p
+                        elif "navmesh_right_bot_pos" == self.object_id:
+                            self.scene.config["navmesh"]["right_bot_pos"] = new_p
+                        self.scene.calculate_navmesh()
 
         return True
     

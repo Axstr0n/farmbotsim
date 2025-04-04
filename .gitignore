@@ -8,3 +8,6 @@
 
 # Ignore virtual environment folders
 venv/
+
+# Ignore dev folder
+dev/

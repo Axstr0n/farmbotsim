@@ -4,6 +4,7 @@ gymnasium==1.1.1
 networkx==3.4.2
 numpy==2.2.4
 pettingzoo==1.24.3
+pillow==11.1.0
 pygame==2.6.1
 triangle==20250106
 typing_extensions==4.12.2

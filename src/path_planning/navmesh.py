@@ -197,7 +197,7 @@ class NavMesh:
                     pts.append(Point(self.vertices[index][0], self.vertices[index][1]))
                 polygon = Polygon(pts)
                 self.polygons.append(polygon)
-            self._optimize()
+            # self._optimize()
             self._build_graph()
 
     def _optimize(self):

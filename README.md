@@ -2,7 +2,7 @@
 
 **farmbotsim** was made to assist with real-world agricultural automation by providing a reliable simulation. In this simulation we can focus on charging strategies and productivity matrix.
 
-![demo_screenshot](screenshots/screenshot1.png)
+![simulation_gif](media/simulation.gif)
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -77,8 +77,10 @@ The **farmbotsim** project is organized into several directories that help separ
 - `config.json` - Configuration file for scene/layout.
 - `env.py` - Contains main class for simulation.
 - `main.py` - Runs the simulation.
+- `performance_matrix.py` - Runs simulations with different parameters
+- `performance_matrix.txt` - Stores simulated results from performance_matrix.py
 
-`.gitignore` - Ignores virtual environment, compiled python files.
+`.gitignore` - Ignores virtual environment, compiled python files, ...
 
 `README.md` - This file, which contains documentation and instructions for setting up and using the simulation.
 

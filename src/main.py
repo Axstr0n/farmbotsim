@@ -1,4 +1,5 @@
 import time
+import pygame
 
 from env import ContinuousMARLEnv
 from task_management.task_manager import TaskManager1
@@ -21,8 +22,9 @@ def main():
     # env.reset()
 
     render_env = False if ENV_RENDER_INTERVAL==0 else True
+    take_screenshots = True
     
-    n_episodes = 10
+    n_episodes = 1
     times = []
     start_time = time.time()
     for episode in range(n_episodes):
@@ -41,7 +43,11 @@ def main():
             
             # Step the environment
             next_observations, rewards, terminations, truncations, infos = env.step(actions)
-            if render_env and env.step_count%ENV_RENDER_INTERVAL==0: env.render() # render every n simulation frames
+            if render_env and env.step_count%ENV_RENDER_INTERVAL==0:
+                env.render() # render every n simulation frames
+                if take_screenshots:
+                    screenshot = pygame.display.get_surface()  # Get the current screen surface
+                    pygame.image.save(screenshot, f"../dev/{str(env.step_count).zfill(6)}.png")  # Save it as a PNG file
             #if env.step_count%300==0: input("Enter")
             
             # Accumulate rewards

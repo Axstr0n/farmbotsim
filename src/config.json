@@ -30,5 +30,15 @@
                 1.0
             ]
         }
-    ]
+    ],
+    "navmesh": {
+        "left_top_pos": [
+            0,
+            0
+        ],
+        "right_bot_pos": [
+            10,
+            10
+        ]
+    }
 }
