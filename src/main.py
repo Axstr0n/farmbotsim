@@ -22,7 +22,7 @@ def main():
     # env.reset()
 
     render_env = False if ENV_RENDER_INTERVAL==0 else True
-    take_screenshots = True
+    take_screenshots = False
     
     n_episodes = 1
     times = []
